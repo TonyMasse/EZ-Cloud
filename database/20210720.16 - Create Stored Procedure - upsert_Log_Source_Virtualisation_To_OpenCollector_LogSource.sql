@@ -21,10 +21,11 @@ GO
 -- Update date: 2022-11-29 - To deal with SIEM v7.9.x and above (add @EventLogFilter)
 -- Update date: 2023-01-11 - To fix bug #28 / ENG-23871 - "Could not find stored procedure 'LogRhythm_EMDB_HostIdentifierToMsgSource_Insert'."
 -- Update date: 2023-01-15 - To deal with SIEM v7.11.x and above (add @WatchFileRenameOnRollover)
--- EZ_VERSION: 20230115.02 :EZ_VERSION
+-- Update date: 2024-04-27 - To fix bug ENG-55978 - Child Log Source being created as "isVirtual" = 1 for some customers
+-- EZ_VERSION: 20240427.01 :EZ_VERSION
 -- =============================================
 
-CREATE PROCEDURE [dbo].[OC_Admin_Upsert_Log_Source_Virtualisation_To_OpenCollector_LogSource] 
+CREATE PROCEDURE [dbo].[OC_Admin_Upsert_Log_Source_Virtualisation_To_OpenCollector_LogSource]
 	@uid varchar(40), -- UID of the Log Source
 	@OpenCollectorMotherLogSourceID int, -- Log Source ID of the Open Collector
 	@Virt_Template_UID varchar(40) = '0d7544aa-5760-4c5e-be62-26262f3cd1db' -- UID of the EZ Cloud Template
@@ -575,7 +576,7 @@ BEGIN
 
 		DECLARE @UpsertedVirtualLogSourceName nvarchar(100) = '';
 		SET @UpsertedVirtualLogSourceName = @UpsertedVirtualLogSourceName + @Name
-		SET @UpsertedVirtualLogSourceName = @UpsertedVirtualLogSourceName + ' - ' 
+		SET @UpsertedVirtualLogSourceName = @UpsertedVirtualLogSourceName + ' - '
 		SET @UpsertedVirtualLogSourceName = @UpsertedVirtualLogSourceName + @VirtualSourceTemplateItemName
 
 		-- Check the LS doens't already exist:
@@ -847,7 +848,7 @@ ___________  DO NOT MODIFY THE LINE BELOW  __________
 
 			DECLARE @PleaseStayQuiet TABLE
 				(
-					DummyMsgSourceID int 
+					DummyMsgSourceID int
 				)
 			IF EXISTS (SELECT * FROM [LogRhythmEMDB].[dbo].[SCDBVersion] WHERE [Major] >= 7 AND [Minor] >= 11)
 				BEGIN -- SIEM v7.11.0 and above
@@ -1065,7 +1066,7 @@ ___________  DO NOT MODIFY THE LINE BELOW  __________
 
 				-- Flag the first record as active
 				UPDATE TOP (1) #keyed_temp_HostIdentifiers set active_key = 1
-				
+
 				WHILE @@rowcount > 0
 					BEGIN
 						-- Grab first active record (there should be only one)
