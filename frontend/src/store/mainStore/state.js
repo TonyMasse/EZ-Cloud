@@ -487,7 +487,7 @@ export default function () {
       },
       {
         name: 'OC_Admin_Upsert_Log_Source_Virtualisation_To_OpenCollector_LogSource',
-        version: '20230115.02'
+        version: '20240427.01'
       },
       {
         name: 'OC_Admin_get_EZ_Versions',
