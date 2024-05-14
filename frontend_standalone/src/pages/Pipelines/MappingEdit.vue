@@ -21,95 +21,8 @@
 
         <q-space />
 
-        <q-btn no-caps flat dense icon="settings" :label="$t('Settings')">
-          <q-menu>
-            <div class="row no-wrap q-pa-md">
-              <div class="column">
-                <div class="text-h6 q-mb-md">{{ $t('Settings') }}</div>
-                <q-item class="q-pl-none" >
-                <q-toggle v-model="showTypesInMainList" :label="$t('Show types in Fields list')" />
-                </q-item>
-                <q-item class="q-pl-none" >
-                <q-toggle v-model="showTypesInPopup" :label="$t('Show types in Value popups')" />
-                </q-item>
-                <q-item class="q-pl-none" >
-                <q-toggle v-model="wrapSingleStringLog" :label="$t('Accept and Wrap non-JSON logs')" />
-                </q-item>
-                <q-item style="width: 35rem;" class="q-pl-none column" >
-                  <q-toggle
-                    v-model="extractMessageFieldOnly"
-                    class="col"
-                  >
-                    {{ $t('Extract Beat\'s payload field only:') }}
-                    <q-input
-                      outlined
-                      v-model="messageFieldPath"
-                      type="text"
-                      style="width: 30rem;"
-                      :label="$t('Beat\'s payload field path')"
-                      :rules="[ val => String(val).startsWith('.') || $t('Please use the dotted path notation')]"
-                      @click.stop=""
-                    >
-                      <template v-slot:append>
-                        <q-icon
-                          name="o_restart_alt"
-                          class="cursor-pointer"
-                          @click.stop="messageFieldPath = messageFieldPathFromTemplate || '.message'"
-                        >
-                          <q-tooltip style="font-size: 1rem">
-                            {{ $t('Reset to field path from Beat\'s template') }}
-                          </q-tooltip>
-                        </q-icon>
-                      </template>
-                    </q-input>
-                  </q-toggle>
-                </q-item>
-                <q-item  style="width: 35rem;">
-                  <q-item-section avatar>
-                    <q-icon name="o_speed" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-slider
-                      v-model="processInBackgroundMaxRate"
-                      :min="1"
-                      :max="10"
-                      label
-                      :label-value="$t('Background Process max: {processInBackgroundMaxRate} / second', { processInBackgroundMaxRate })"
-                    />
-                  </q-item-section>
-                </q-item>
-                <q-item  style="width: 35rem;">
-                  <q-item-section avatar>
-                    <q-icon name="o_download" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-slider
-                      v-model="queueInMaxSize"
-                      :min="1"
-                      :max="2000"
-                      label
-                      :label-value="$t('Max messages in Queue In: {queueInMaxSize}', { queueInMaxSize })"
-                    />
-                  </q-item-section>
-                </q-item>
-                <q-item  style="width: 35rem;">
-                  <q-item-section avatar>
-                    <q-icon name="o_download_for_offline" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-slider
-                      v-model="processedLogsMaxSize"
-                      :min="1"
-                      :max="1000"
-                      label
-                      :label-value="$t('Max messages in Processed Logs: {processedLogsMaxSize}', { processedLogsMaxSize })"
-                    />
-                  </q-item-section>
-                </q-item>
-              </div>
-            </div>
-          </q-menu>
-        </q-btn>
+        <q-btn no-caps flat dense icon="settings" :label="$t('Settings')" @click="showSettings = !showSettings" />
+
       </q-toolbar>
     </q-header>
     <div class="">
@@ -463,6 +376,269 @@
         </q-virtual-scroll>
       </q-card>
     </div>
+    <q-dialog v-model="showSettings" persistent>
+      <q-card style="min-width: 36rem">
+        <q-card-section class="row justify-between">
+          <div class="text-h6">{{ $t('Settings') }}</div>
+          <q-btn dense flat icon="close" color="grey-5" v-close-popup />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="row no-wrap q-pa-md">
+          <div class="column flex q-gutter-sm" style="width: 35rem">
+            <div class="text-bold">{{ $t('General') }}</div>
+            <!-- <q-list dense class=""> -->
+              <!-- <q-item class="q-pl-none" >
+                <q-toggle v-model="showTypesInMainList" :label="$t('Show types in Fields list')" />
+              </q-item> -->
+              <!-- <q-item class="q-pl-none" >
+                <q-toggle v-model="showTypesInPopup" :label="$t('Show types in Value popups')" />
+              </q-item> -->
+              <!-- <q-item class="q-pl-none" >
+                <q-toggle v-model="wrapSingleStringLog" :label="$t('Accept and Wrap non-JSON logs')" />
+              </q-item> -->
+              <lrWebConsoleToggle
+                v-model="wrapSingleStringLog"
+                :label="$t('Accept and Wrap non-JSON logs')"
+                :color="darkMode ? '#e0e0e0' : '#666666'"
+              />
+              <lrWebConsoleToggle
+                v-model="extractMessageFieldOnly"
+                :label="$t('Extract Beat\'s payload field only:')"
+                :color="darkMode ? '#e0e0e0' : '#666666'"
+              />
+              <!-- <q-item class="q-px-none" >
+              </q-item> -->
+              <!-- <q-item class="q-pa-none q-ma-none" >
+                <lrWebConsoleToggle v-model="wrapSingleStringLog" :label="$t('Accept and Wrap non-JSON logs')" />
+              </q-item>
+              <q-item class="q-pl-none" >
+                <lrWebConsoleToggle v-model="extractMessageFieldOnly" :label="$t('Extract Beat\'s payload field only:')" />
+              </q-item> -->
+              <div class="q-ml-lg q-mr-sm">
+                <label class="q-mt-md">{{ $t('Beat\'s payload field path') }}</label>
+                <q-input
+                  class="full-width"
+                  outlined
+                  v-model="messageFieldPath"
+                  type="text"
+                  :disable="!extractMessageFieldOnly"
+                  dense
+                  :rules="[ val => String(val).startsWith('.') || $t('Please use the dotted path notation')]"
+                  @click.stop=""
+                >
+                  <template v-slot:after>
+                    <q-icon
+                      name="o_restart_alt"
+                      class="cursor-pointer"
+                      @click.stop="messageFieldPath = messageFieldPathFromTemplate || '.message'"
+                    >
+                      <q-tooltip style="font-size: 1rem">
+                        {{ $t('Reset to field path from Beat\'s template') }}
+                      </q-tooltip>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+              <!-- <q-item style="width: 35rem;" class="q-pl-none column" >
+                <q-toggle
+                  v-model="extractMessageFieldOnly"
+                  class="col"
+                >
+                  {{ $t('Extract Beat\'s payload field only:') }}
+                  <q-input
+                    outlined
+                    v-model="messageFieldPath"
+                    type="text"
+                    style="width: 30rem;"
+                    :label="$t('Beat\'s payload field path')"
+                    :rules="[ val => String(val).startsWith('.') || $t('Please use the dotted path notation')]"
+                    @click.stop=""
+                  >
+                    <template v-slot:append>
+                      <q-icon
+                        name="o_restart_alt"
+                        class="cursor-pointer"
+                        @click.stop="messageFieldPath = messageFieldPathFromTemplate || '.message'"
+                      >
+                        <q-tooltip style="font-size: 1rem">
+                          {{ $t('Reset to field path from Beat\'s template') }}
+                        </q-tooltip>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </q-toggle>
+              </q-item> -->
+              <!-- <q-item  style="width: 35rem;">
+                <q-item-section avatar>
+                  <q-icon name="o_speed" />
+                </q-item-section>
+                <q-item-section>
+                  <q-slider
+                    v-model="processInBackgroundMaxRate"
+                    :min="1"
+                    :max="10"
+                    label
+                    :label-value="$t('Background Process max: {processInBackgroundMaxRate} / second', { processInBackgroundMaxRate })"
+                  />
+                </q-item-section>
+              </q-item> -->
+              <div class="q-mr-md">
+                <label class="q-mt-md">{{ $t('Background Process Max (messages/second)') }}</label>
+                <q-slider
+                  class="full-width"
+                  v-model="processInBackgroundMaxRate"
+                  :min="1"
+                  :max="10"
+                  label
+                  :label-value="$t('Background Process max: {processInBackgroundMaxRate} / second', { processInBackgroundMaxRate })"
+                  marker-labels
+                />
+              </div>
+              <div class="q-mr-md">
+                <label class="q-mt-md">{{ $t('Max messages in Queue') }}</label>
+                <q-slider
+                  class="full-width"
+                  v-model="queueInMaxSize"
+                  :min="1"
+                  :max="2000"
+                  label
+                  :label-value="$t('Max messages in Queue In: {queueInMaxSize}', { queueInMaxSize })"
+                  :marker-labels="{1:'1', 500:'500', 1000:'1000', 1500:'1500', 2000:'2000'}"
+                />
+              </div>
+              <div class="q-mr-md">
+                <label class="q-mt-md">{{ $t('Max messages in Processed Logs') }}</label>
+                <q-slider
+                  class="full-width"
+                  v-model="processedLogsMaxSize"
+                  :min="1"
+                  :max="1000"
+                  label
+                  :label-value="$t('Max messages in Processed Logs: {processedLogsMaxSize}', { processedLogsMaxSize })"
+                  :marker-labels="{1:'1', 250:'250', 500:'500', 750:'750', 1000:'1000'}"
+                />
+              </div>
+              <!-- <q-item  style="width: 35rem;">
+                <q-item-section avatar>
+                  <q-icon name="o_download" />
+                </q-item-section>
+                <q-item-section>
+                  <q-slider
+                    v-model="queueInMaxSize"
+                    :min="1"
+                    :max="2000"
+                    label
+                    :label-value="$t('Max messages in Queue In: {queueInMaxSize}', { queueInMaxSize })"
+                  />
+                </q-item-section>
+              </q-item> -->
+              <!-- <q-item  style="width: 35rem;">
+                <q-item-section avatar>
+                  <q-icon name="o_download_for_offline" />
+                </q-item-section>
+                <q-item-section>
+                  <q-slider
+                    v-model="processedLogsMaxSize"
+                    :min="1"
+                    :max="1000"
+                    label
+                    :label-value="$t('Max messages in Processed Logs: {processedLogsMaxSize}', { processedLogsMaxSize })"
+                  />
+                </q-item-section>
+              </q-item> -->
+            <!-- </q-list> -->
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="row no-wrap q-pa-md">
+          <div class="column flex q-gutter-sm" style="width: 35rem">
+            <div class="text-bold">{{ $t('User Preferences') }}</div>
+            <div class="row">
+              <div class="col-3">
+                <label class="">{{ $t('Display') }}</label>
+              </div>
+              <div class="col">
+                <q-btn-toggle
+                  v-model="darkMode"
+                  no-caps
+                  toggle-color="primary"
+                  :options="[
+                    {label: $t('Day'), value: false},
+                    {label: $t('Night'), value: true}
+                  ]"
+                >
+                  <q-tooltip content-style="font-size: 1em">
+                    {{ $t('Switch between Light and Dark mode') }}
+                  </q-tooltip>
+                </q-btn-toggle>
+              </div>
+            </div>
+            <div class="q-mr-md">
+              <!-- <q-toggle
+                v-model="darkMode"
+                checked-icon="dark_mode"
+                unchecked-icon="light_mode"
+                color="grey"
+                size="3rem"
+                keep-color
+              >
+                <q-tooltip content-style="font-size: 1em">
+                  {{ $t('Switch between Light and Dark mode') }}
+                </q-tooltip>
+              </q-toggle> -->
+            </div>
+            <div class="q-mr-md">
+              <q-select
+                v-model="selectedLanguage"
+                :options="langOptions"
+                outlined
+                emit-value
+                map-options
+                dense
+                style="min-width: 150px"
+              />
+            </div>
+          </div>
+
+          <!-- <q-card-actions vertical class="justify-around q-px-md">
+            <q-btn color="primary" icon="save" @click="saveLanguageSettings()" :loading="savingAction" >
+              <q-tooltip content-style="font-size: 1em">
+                {{ $t('Save settings to local web browser.') }}
+              </q-tooltip>
+            </q-btn>
+          </q-card-actions> -->
+        </q-card-section>
+        <q-card-actions
+          align="right"
+          class="q-py-md q-pr-lg"
+          :class="darkMode ? 'bg-grey-7' : 'bg-grey-5'"
+        >
+          <q-btn
+            :color="darkMode ? 'grey-9' : 'grey-4'"
+            :text-color="darkMode ? 'grey-4' : 'grey-9'"
+            label="Cancel"
+            no-caps
+            v-close-popup
+          />
+          <q-btn
+            color="primary"
+            text-color="green-4"
+            label="Save"
+            no-caps
+            @click="saveLanguageSettings()"
+            :loading="savingAction"
+          >
+            <q-tooltip content-style="font-size: 1em">
+              {{ $t('Save settings to local web browser.') }}
+            </q-tooltip>
+          </q-btn>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -481,6 +657,8 @@ import mixinSharedDarkMode from 'src/mixins/mixin-Shared-DarkMode'
 import mixinSharedRightToLeft from 'src/mixins/mixin-Shared-RightToLeft'
 import mixinSharedBuildJq from 'src/mixins/mixin-Shared-BuildJq'
 import Vue2Filters from 'vue2-filters'
+import { languageOptions, switchLanguageTo } from 'src/i18n/shared'
+import lrWebConsoleToggle from 'components/lrWebConsole/toggle.vue'
 
 export default {
   name: 'PagePipelineBuilder',
@@ -490,7 +668,7 @@ export default {
     mixinSharedBuildJq, // Shared JQ Building functions (Filter and Transform)
     Vue2Filters.mixin
   ],
-  // components: { BreadCrumbs },
+  components: { lrWebConsoleToggle },
   data () {
     return {
       pipelineUid: '', // UUID of the pipeline, used as the UUID of the tail too. Needed to be able to kill it on the server
@@ -652,7 +830,10 @@ export default {
   }
 }`, // To enter log data by hand
       queueInDataEntryMultiLog: '{"timestamp":"20210422T16:40:00","id":"abcdef-1234"}\r{"timestamp":"20210422T16:43:00","id":"xyzmno-8754"}', // To enter log data by hand, one per line
-      manualImportFileInput: null // File
+      manualImportFileInput: null, // File
+      showSettings: false, // Showing up the Settings modal
+      savingAction: false, // Waiting for API to respond
+      selectedLanguage: this.$i18n.locale
     }
   },
   computed: {
@@ -671,7 +852,33 @@ export default {
     }, // queueInWindow
     queueProcessWindow () {
       return JSON.stringify(this.queueProcess)
-    } // queueProcessWindow
+    }, // queueProcessWindow
+    langOptions () {
+      return (
+        languageOptions && Array.isArray(languageOptions)
+          ? languageOptions.reduce(
+            (accumulatedLangages, language) => {
+              accumulatedLangages.push(
+                {
+                  ...language,
+                  label: (language.value !== this.$i18n.locale
+                    ? `${this.$t(language.label)} - ${language.nativeLabel}`
+                    : language.nativeLabel
+                  )
+                }
+              )
+              return accumulatedLangages
+            }, []
+          )
+          : languageOptions
+      )
+    // },
+    // queueInMaxSizeMarkerLabels () {
+    //   return {
+    //     1: '1',
+    //     2000: '2000'
+    //   }
+    }
   },
 
   methods: {
@@ -1078,6 +1285,10 @@ export default {
     unscheduleNextBackgroundProcess () {
       clearTimeout(this.backgroundProcessInterval)
       this.backgroundProcessInterval = null
+    },
+
+    saveLanguageSettings () {
+      switchLanguageTo(this, this.selectedLanguage)
     }
   },
 
