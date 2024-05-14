@@ -3,7 +3,7 @@
     <q-header bordered :style="(darkMode ? 'background: var(--q-color-dark);' : '')" :class="(darkMode ? '' : 'bg-grey-1')">
       <q-toolbar class="q-gutter-x-sm" :class="(darkMode ? '' : 'text-black')">
         <img class="q-mr-md" :src="(darkMode ? 'logrhythm_logo_darkmode_wide.svg' : 'logrhythm_logo_lightmode_wide.svg')" alt="LogRhythm Open Collector">
-        <q-btn no-caps flat dense icon="playlist_add" :label="$t('Manual Import')" @click="showManualImport = true" v-if="!showManualImport" >
+        <!-- <q-btn no-caps flat dense icon="playlist_add" :label="$t('Manual Import')" @click="showManualImport = true" v-if="!showManualImport" >
           <q-tooltip content-style="font-size: 1rem;">
             {{ $t('Import log messages manually') }}
           </q-tooltip>
@@ -13,7 +13,7 @@
             {{ $t('Hide Manual Import panel') }}
           </q-tooltip>
         </q-btn>
-        <q-separator vertical />
+        <q-separator vertical /> -->
         <q-btn no-caps flat dense icon="file_download" :label="$t('Export SMA Policy')" />
         <!-- <q-btn no-caps flat dense icon="file_download" :label="$t('Export JQ')" disable /> -->
         <!-- <q-btn no-caps flat dense icon="visibility" :label="$t('Show JQ')" v-if="!showJqOutput" @click="buildJqFilter(); buildJqTransform(); showJqOutput = true" />
@@ -45,174 +45,194 @@
         <q-linear-progress :value="queueIn.length / queueInMaxSize" color="indigo" size="lg" stripe track-color="grey-10" />
         <q-linear-progress :value="processedLogsCount / processedLogsMaxSize" color="teal" size="lg" track-color="grey-10" />
       </div>
-      <q-card class="q-mt-md" v-show="showManualImport">
-        <q-card-section class="text-h4" style="opacity:.4">
-          {{ $t('Manual import') }}
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <q-tabs
-            v-model="manualImportMethod"
-            active-color="primary"
-            indicator-color="primary"
-            align="justify"
-          >
-            <q-tab name="single_log" :label="$t('Single Log')" />
-            <q-tab name="multiple_logs" :label="$t('Multiple Logs')" />
-            <q-tab name="log_file" :label="$t('File Import')" />
-          </q-tabs>
-
+      <div class="text-h4 q-my-md">
+        {{ $t('Import JSON') }}
+      </div>
+      <q-expansion-item
+        group="group"
+        default-opened
+        class="shadow-1 overflow-hidden q-mb-lg"
+        style="border-radius: 7px"
+        :label="$t('Sample Messages')"
+        :header-class="darkMode ? 'bg-grey-7 text-grey-4' : 'bg-grey-5 text-grey-9'"
+        expand-icon-class="text-white"
+      >
+        <q-card class="q-mt-md">
+          <q-card-section class="text-h4" style="opacity:.4">
+            {{ $t('Manual import') }}
+          </q-card-section>
           <q-separator />
+          <q-card-section>
+            <q-tabs
+              v-model="manualImportMethod"
+              active-color="primary"
+              indicator-color="primary"
+              align="justify"
+            >
+              <q-tab name="single_log" :label="$t('Single Log')" />
+              <q-tab name="multiple_logs" :label="$t('Multiple Logs')" />
+              <q-tab name="log_file" :label="$t('File Import')" />
+            </q-tabs>
 
-          <q-tab-panels v-model="manualImportMethod" animated>
-            <q-tab-panel name="single_log">
-              <q-input
-                v-model="queueInDataEntrySingleLog"
-                outlined
-                autogrow
-                input-style="min-height: 16em;"
-                :label="$t('One single JSON log at a time')"
-                :rules="[ val => isProperJson(val) || 'JSON Syntax Error(s)' ]"
-                @keypress.shift.enter.prevent="queueInAdd({values: queueInDataEntrySingleLog, manualEntry: true});"
-              >
-                <template v-slot:after>
-                  <div class="full-height justify-around q-gutter-y-lg">
-                    <q-btn dense icon="playlist_add" color="primary" :disable="!isProperJson(queueInDataEntrySingleLog)" @click="queueInAdd({ values: queueInDataEntrySingleLog, manualEntry: true })" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                        {{ $t('Add to Queue') }}
-                      </q-tooltip>
-                    </q-btn>
-                    <q-btn class="row" dense icon="content_copy" flat :disable="!queueInDataEntrySingleLog.length" @click="copyToClipboard(queueInDataEntrySingleLog)" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                        {{ $t('Copy to Clipboad') }}
-                      </q-tooltip>
-                    </q-btn>
-                    <q-btn class="row" dense icon="close" flat :disable="!queueInDataEntrySingleLog.length" @click="queueInDataEntrySingleLog = ''" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;" v-if="queueInDataEntrySingleLog.length">
-                        {{ $t('Clear out') }}
-                      </q-tooltip>
-                    </q-btn>
-                  </div>
-                </template>
-              </q-input>
-            </q-tab-panel>
+            <q-separator />
 
-            <q-tab-panel name="multiple_logs">
-              <q-input
-                v-model="queueInDataEntryMultiLog"
-                outlined
-                autogrow
-                input-style="min-height: 16em;"
-                :label="$t('One JSON entry per line')"
-                :rules="[ val => val != null || 'Common, give me some JSON!' ]"
-                @keypress.shift.enter.prevent="queueInAdd({values: queueInDataEntryMultiLog, manualEntry: true});"
-              >
-                <template v-slot:after>
-                  <div class="full-height justify-around q-gutter-y-lg">
-                    <q-btn class="row" dense icon="playlist_add" color="primary" :disable="!queueInDataEntryMultiLog.length" @click="queueInAdd({ values: queueInDataEntryMultiLog, manualEntry: true, multiLogs: true })" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                        {{ $t('Add to Queue') }}
-                      </q-tooltip>
-                    </q-btn>
-                    <q-btn class="row" dense icon="content_copy" flat :disable="!queueInDataEntryMultiLog.length" @click="copyToClipboard(queueInDataEntryMultiLog)" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                        {{ $t('Copy to Clipboad') }}
-                      </q-tooltip>
-                    </q-btn>
-                    <q-btn class="row" dense icon="close" flat :disable="!queueInDataEntryMultiLog.length" @click="queueInDataEntryMultiLog = ''" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;" v-if="queueInDataEntryMultiLog.length">
-                        {{ $t('Clear out') }}
-                      </q-tooltip>
-                    </q-btn>
-                  </div>
-                </template>
-              </q-input>
-            </q-tab-panel>
+            <q-tab-panels v-model="manualImportMethod" animated>
+              <q-tab-panel name="single_log">
+                <q-input
+                  v-model="queueInDataEntrySingleLog"
+                  outlined
+                  autogrow
+                  input-style="min-height: 16em;"
+                  :label="$t('One single JSON log at a time')"
+                  :rules="[ val => isProperJson(val) || 'JSON Syntax Error(s)' ]"
+                  @keypress.shift.enter.prevent="queueInAdd({values: queueInDataEntrySingleLog, manualEntry: true});"
+                >
+                  <template v-slot:after>
+                    <div class="full-height justify-around q-gutter-y-lg">
+                      <q-btn dense icon="playlist_add" color="primary" :disable="!isProperJson(queueInDataEntrySingleLog)" @click="queueInAdd({ values: queueInDataEntrySingleLog, manualEntry: true })" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
+                          {{ $t('Add to Queue') }}
+                        </q-tooltip>
+                      </q-btn>
+                      <q-btn class="row" dense icon="content_copy" flat :disable="!queueInDataEntrySingleLog.length" @click="copyToClipboard(queueInDataEntrySingleLog)" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
+                          {{ $t('Copy to Clipboad') }}
+                        </q-tooltip>
+                      </q-btn>
+                      <q-btn class="row" dense icon="close" flat :disable="!queueInDataEntrySingleLog.length" @click="queueInDataEntrySingleLog = ''" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;" v-if="queueInDataEntrySingleLog.length">
+                          {{ $t('Clear out') }}
+                        </q-tooltip>
+                      </q-btn>
+                    </div>
+                  </template>
+                </q-input>
+              </q-tab-panel>
 
-            <q-tab-panel name="log_file">
-              <q-file
-                outlined
-                bottom-slots
-                v-model="manualImportFileInput"
-                :label="$t('Click or Drop a file here')"
-                multiple
-                counter
-                max-files="10"
-                input-style="min-height: 15.75em;"
-              >
-                <template v-slot:append>
-                  <q-icon v-if="manualImportFileInput !== null" name="o_close" @click.stop="manualImportFileInput = null" class="cursor-pointer" />
-                  <q-icon name="o_note_add" @click.stop />
-                </template>
+              <q-tab-panel name="multiple_logs">
+                <q-input
+                  v-model="queueInDataEntryMultiLog"
+                  outlined
+                  autogrow
+                  input-style="min-height: 16em;"
+                  :label="$t('One JSON entry per line')"
+                  :rules="[ val => val != null || 'Common, give me some JSON!' ]"
+                  @keypress.shift.enter.prevent="queueInAdd({values: queueInDataEntryMultiLog, manualEntry: true});"
+                >
+                  <template v-slot:after>
+                    <div class="full-height justify-around q-gutter-y-lg">
+                      <q-btn class="row" dense icon="playlist_add" color="primary" :disable="!queueInDataEntryMultiLog.length" @click="queueInAdd({ values: queueInDataEntryMultiLog, manualEntry: true, multiLogs: true })" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
+                          {{ $t('Add to Queue') }}
+                        </q-tooltip>
+                      </q-btn>
+                      <q-btn class="row" dense icon="content_copy" flat :disable="!queueInDataEntryMultiLog.length" @click="copyToClipboard(queueInDataEntryMultiLog)" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
+                          {{ $t('Copy to Clipboad') }}
+                        </q-tooltip>
+                      </q-btn>
+                      <q-btn class="row" dense icon="close" flat :disable="!queueInDataEntryMultiLog.length" @click="queueInDataEntryMultiLog = ''" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;" v-if="queueInDataEntryMultiLog.length">
+                          {{ $t('Clear out') }}
+                        </q-tooltip>
+                      </q-btn>
+                    </div>
+                  </template>
+                </q-input>
+              </q-tab-panel>
 
-                <template v-slot:after>
-                  <div class="full-height justify-around q-gutter-y-lg">
-                    <q-btn class="row" dense icon="upload_file" color="primary" :disable="manualImportFileInput == null" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                       <span v-if="manualImportFileInput !== null && manualImportFileInput.length > 1" >{{ $t('Add Files Content to Queue') }}</span>
-                       <span v-else >{{ $t('Add File Content to Queue') }}</span>
-                      </q-tooltip>
-                      <q-menu>
-                        <q-list style="min-width: 400px">
-                          <q-item clickable v-close-popup @click="processFilesInput({ filesInput: manualImportFileInput, importAs: 'single_log_per_file' })">
-                            <q-item-section avatar top>
-                              <q-avatar icon="short_text" color="green-10" text-color="white" />
-                            </q-item-section>
+              <q-tab-panel name="log_file">
+                <q-file
+                  outlined
+                  bottom-slots
+                  v-model="manualImportFileInput"
+                  :label="$t('Click or Drop a file here')"
+                  multiple
+                  counter
+                  max-files="10"
+                  input-style="min-height: 15.75em;"
+                >
+                  <template v-slot:append>
+                    <q-icon v-if="manualImportFileInput !== null" name="o_close" @click.stop="manualImportFileInput = null" class="cursor-pointer" />
+                    <q-icon name="o_note_add" @click.stop />
+                  </template>
 
-                            <q-item-section>
-                              <q-item-label lines="1">{{ $t('As a Single Log') }}</q-item-label>
-                              <q-item-label caption>{{ $t('One JSON Log per file') }}</q-item-label>
-                            </q-item-section>
-                          </q-item>
-                          <q-item clickable v-close-popup @click="processFilesInput({ filesInput: manualImportFileInput, importAs: 'log_array_per_file' })">
-                            <q-item-section avatar top>
-                              <q-avatar icon="data_array" color="purple-10" text-color="white" />
-                            </q-item-section>
+                  <template v-slot:after>
+                    <div class="full-height justify-around q-gutter-y-lg">
+                      <q-btn class="row" dense icon="upload_file" color="primary" :disable="manualImportFileInput == null" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
+                        <span v-if="manualImportFileInput !== null && manualImportFileInput.length > 1" >{{ $t('Add Files Content to Queue') }}</span>
+                        <span v-else >{{ $t('Add File Content to Queue') }}</span>
+                        </q-tooltip>
+                        <q-menu>
+                          <q-list style="min-width: 400px">
+                            <q-item clickable v-close-popup @click="processFilesInput({ filesInput: manualImportFileInput, importAs: 'single_log_per_file' })">
+                              <q-item-section avatar top>
+                                <q-avatar icon="short_text" color="green-10" text-color="white" />
+                              </q-item-section>
 
-                            <q-item-section>
-                              <q-item-label lines="1">{{ $t('As an Array of Logs') }}</q-item-label>
-                              <q-item-label caption>{{ $t('One JSON array of Logs per file') }}</q-item-label>
-                            </q-item-section>
-                          </q-item>
-                          <q-item clickable v-close-popup @click="processFilesInput({ filesInput: manualImportFileInput, importAs: 'log_set_per_file' })">
-                            <q-item-section avatar top>
-                              <q-avatar icon="format_list_numbered" color="indigo-10" text-color="white" />
-                            </q-item-section>
+                              <q-item-section>
+                                <q-item-label lines="1">{{ $t('As a Single Log') }}</q-item-label>
+                                <q-item-label caption>{{ $t('One JSON Log per file') }}</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                            <q-item clickable v-close-popup @click="processFilesInput({ filesInput: manualImportFileInput, importAs: 'log_array_per_file' })">
+                              <q-item-section avatar top>
+                                <q-avatar icon="data_array" color="purple-10" text-color="white" />
+                              </q-item-section>
 
-                            <q-item-section>
-                              <q-item-label lines="1">{{ $t('As a Set of Logs') }}</q-item-label>
-                              <q-item-label caption>{{ $t('One JSON log per line') }}</q-item-label>
-                            </q-item-section>
-                          </q-item>
-                          <!-- format_list_numbered -->
-                          <!-- format_align_left -->
-                          <q-separator />
-                          <q-item clickable v-close-popup tag="a" :href="wikiLink('ref-whatsthedifferencefileimport')" target="_blank" >
-                            <q-item-section avatar top>
-                              <q-avatar icon="help_outline" color="info" text-color="black" />
-                            </q-item-section>
+                              <q-item-section>
+                                <q-item-label lines="1">{{ $t('As an Array of Logs') }}</q-item-label>
+                                <q-item-label caption>{{ $t('One JSON array of Logs per file') }}</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                            <q-item clickable v-close-popup @click="processFilesInput({ filesInput: manualImportFileInput, importAs: 'log_set_per_file' })">
+                              <q-item-section avatar top>
+                                <q-avatar icon="format_list_numbered" color="indigo-10" text-color="white" />
+                              </q-item-section>
 
-                            <q-item-section>
-                              <q-item-label lines="1">{{ $t('What\'s the difference?') }}</q-item-label>
-                              <q-item-label caption>{{ $t('A quick peek at the Wiki') }}</q-item-label>
-                            </q-item-section>
-                          </q-item>
-                        </q-list>
-                      </q-menu>
-                    </q-btn>
-                    <q-btn class="row" dense icon="close" flat :disable="manualImportFileInput == null" @click="manualImportFileInput = null" >
-                      <q-tooltip content-style="font-size: 1rem; min-width: 10rem;" v-if="manualImportFileInput != null">
-                        {{ $t('Clear out file selection') }}
-                      </q-tooltip>
-                    </q-btn>
-                  </div>
-                </template>
-              </q-file>
-            </q-tab-panel>
-          </q-tab-panels>
-        </q-card-section>
-      </q-card>
+                              <q-item-section>
+                                <q-item-label lines="1">{{ $t('As a Set of Logs') }}</q-item-label>
+                                <q-item-label caption>{{ $t('One JSON log per line') }}</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                            <!-- format_list_numbered -->
+                            <!-- format_align_left -->
+                            <q-separator />
+                            <q-item clickable v-close-popup tag="a" :href="wikiLink('ref-whatsthedifferencefileimport')" target="_blank" >
+                              <q-item-section avatar top>
+                                <q-avatar icon="help_outline" color="info" text-color="black" />
+                              </q-item-section>
 
+                              <q-item-section>
+                                <q-item-label lines="1">{{ $t('What\'s the difference?') }}</q-item-label>
+                                <q-item-label caption>{{ $t('A quick peek at the Wiki') }}</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-btn>
+                      <q-btn class="row" dense icon="close" flat :disable="manualImportFileInput == null" @click="manualImportFileInput = null" >
+                        <q-tooltip content-style="font-size: 1rem; min-width: 10rem;" v-if="manualImportFileInput != null">
+                          {{ $t('Clear out file selection') }}
+                        </q-tooltip>
+                      </q-btn>
+                    </div>
+                  </template>
+                </q-file>
+              </q-tab-panel>
+            </q-tab-panels>
+          </q-card-section>
+        </q-card>
+      </q-expansion-item>
+      <q-expansion-item
+        group="group"
+        class="shadow-1 overflow-hidden"
+        style="border-radius: 7px"
+        :label="$t('JSON Mapping')"
+        :header-class="darkMode ? 'bg-grey-7 text-grey-4' : 'bg-grey-5 text-grey-9'"
+        expand-icon-class="text-white"
+      >
       <q-card class="q-mt-md fit column">
         <div
           class="row items-stretch text-bold"
@@ -248,7 +268,7 @@
         </div>
         <q-separator />
         <!-- DATA -->
-          <!-- style="height: calc(100vh - (50px + 10px + 10px + 30px));" -->
+          <!-- style="height: calc(100vh - (50px + 7px + 10px + 30px));" -->
         <q-virtual-scroll
           style="height: calc(100vh - (15rem)); min-height: 10rem;"
           :items="orderBy(jsonPathes, 'name')"
@@ -375,7 +395,10 @@
           </template>
         </q-virtual-scroll>
       </q-card>
+    </q-expansion-item>
+
     </div>
+
     <q-dialog v-model="showSettings" persistent>
       <q-card style="min-width: 36rem">
         <q-card-section class="row justify-between">
@@ -817,7 +840,7 @@ export default {
       needsSaving: false, // Are there any un-saved changes
       saving: false, // Saving is still ongoing
       communicationLogsOutput: '', // The logs about the Socket communication, as text
-      showManualImport: false, // Collapse / Hide Manual Import panel
+      // showManualImport: false, // Collapse / Hide Manual Import panel
       manualImportMethod: 'single_log', // How is the user going to manually import Logs
       queueInDataEntrySingleLog: `{
   "timestamp":"20210422T16:40:00",
