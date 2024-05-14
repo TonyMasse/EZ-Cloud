@@ -1,7 +1,7 @@
 <template>
   <!-- <q-layout view="lHh Lpr fFf"> -->
-  <q-layout view="hHh Lpr fFf">
-    <q-drawer
+  <q-layout view="hHh lPr fFf">
+    <!-- <q-drawer
       v-model="drawerMenuOpen"
       show-if-above
 
@@ -41,7 +41,7 @@
         <span style="opacity:.4; font-size:.75em">v{{version}}</span>
       </div>
     </div>
-  </q-drawer>
+  </q-drawer> -->
 
     <q-page-container>
       <router-view />
@@ -93,14 +93,14 @@
 
 <script>
 import { mapState } from 'vuex'
-import EssentialLink from 'components/EssentialLink.vue'
+// import EssentialLink from 'components/EssentialLink.vue'
 import mixinSharedDarkMode from 'src/mixins/mixin-Shared-DarkMode'
 import { version } from '../../package.json'
 import { date } from 'quasar'
 
 export default {
   name: 'MainLayout',
-  components: { EssentialLink },
+  // components: { EssentialLink },
   mixins: [
     mixinSharedDarkMode // Shared computed to access and update the DarkMode
   ],
