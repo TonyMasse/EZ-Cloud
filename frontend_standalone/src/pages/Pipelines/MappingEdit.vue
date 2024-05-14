@@ -630,6 +630,7 @@
             label="Save"
             no-caps
             @click="saveLanguageSettings()"
+            v-close-popup
             :loading="savingAction"
           >
             <q-tooltip content-style="font-size: 1em">
@@ -1286,6 +1287,14 @@ export default {
       clearTimeout(this.backgroundProcessInterval)
       this.backgroundProcessInterval = null
     },
+
+    //     ##          ###    ##    ##  ######   ##     ##    ###     ######   ########
+    //     ##         ## ##   ###   ## ##    ##  ##     ##   ## ##   ##    ##  ##
+    //     ##        ##   ##  ####  ## ##        ##     ##  ##   ##  ##        ##
+    //     ##       ##     ## ## ## ## ##   #### ##     ## ##     ## ##   #### ######
+    //     ##       ######### ##  #### ##    ##  ##     ## ######### ##    ##  ##
+    //     ##       ##     ## ##   ### ##    ##  ##     ## ##     ## ##    ##  ##
+    //     ######## ##     ## ##    ##  ######    #######  ##     ##  ######   ########
 
     saveLanguageSettings () {
       switchLanguageTo(this, this.selectedLanguage)
