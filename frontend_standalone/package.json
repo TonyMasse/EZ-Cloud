@@ -15,7 +15,7 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "export NODE_OPTIONS=--openssl-legacy-provider && quasar dev",
     "dev_win_prep": "$env:NODE_OPTIONS=--openssl-legacy-provider",
-    "dev_win": "$env:NODE_OPTIONS=--openssl-legacy-provider ; quasar dev",
+    "dev_win": "$env:NODE_OPTIONS='--openssl-legacy-provider' ; quasar dev",
     "dev_win_cmd": "set NODE_OPTIONS=--openssl-legacy-provider ; quasar dev"
   },
   "dependencies": {
