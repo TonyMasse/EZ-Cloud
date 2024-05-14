@@ -21,7 +21,7 @@
 
         <q-space />
 
-        <q-btn no-caps flat dense icon="settings" :label="$t('Settings')" @click="showSettings = !showSettings" />
+        <q-btn no-caps dense class="q-px-sm" icon="settings" :label="$t('Settings')" @click="showSettings = !showSettings" />
 
       </q-toolbar>
     </q-header>
