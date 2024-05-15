@@ -45,7 +45,7 @@
         <q-linear-progress :value="queueIn.length / queueInMaxSize" color="indigo" size="lg" stripe track-color="grey-10" />
         <q-linear-progress :value="processedLogsCount / processedLogsMaxSize" color="teal" size="lg" track-color="grey-10" />
       </div>
-      <div class="text-h4 q-my-md">
+      <div class="text-h4 q-my-md" style="opacity:.6">
         {{ $t('Import JSON') }}
       </div>
       <q-expansion-item
@@ -53,35 +53,44 @@
         default-opened
         class="shadow-1 overflow-hidden q-mb-lg"
         style="border-radius: 7px"
-        :label="$t('Sample Messages')"
         :header-class="darkMode ? 'bg-grey-7 text-grey-4' : 'bg-grey-5 text-grey-9'"
         expand-icon-class="text-white"
       >
-        <q-card class="q-mt-md">
-          <q-card-section class="text-h4" style="opacity:.4">
-            {{ $t('Manual import') }}
+        <template v-slot:header>
+          <q-item-section>
+            <span style="opacity:.8" class="text-bold">{{ $t('Sample Messages') }}</span>
+          </q-item-section>
+        </template>
+        <q-card :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
+          <q-card-section class="text-bold">
+            {{ $t('Import JSON messages to start mapping.') }}
           </q-card-section>
-          <q-separator />
-          <q-card-section>
-            <q-tabs
+
+          <q-card-section class="text-bold q-pt-none">
+            <q-btn-toggle
               v-model="manualImportMethod"
-              active-color="primary"
-              indicator-color="primary"
-              align="justify"
-            >
-              <q-tab name="single_log" :label="$t('Single Log')" />
-              <q-tab name="multiple_logs" :label="$t('Multiple Logs')" />
-              <q-tab name="log_file" :label="$t('File Import')" />
-            </q-tabs>
+              style="border-radius: 0%;"
+              :color="darkMode ? 'grey-8' : 'grey-5'"
+              :text-color="darkMode ? 'grey-5' : 'grey-8'"
+              :toggle-color="darkMode ? 'grey-4' : 'grey-3'"
+              :toggle-text-color="darkMode ? 'grey-10' : 'grey-10'"
+              no-caps
+              unelevated
+              :ripple = "false"
+              :options="[
+                {label: $t('Single Log'), value: 'single_log'},
+                {label: $t('Multiple Logs'), value: 'multiple_logs'},
+                {label: $t('File Import'), value: 'log_file'}
+              ]"
+            />
 
-            <q-separator />
-
-            <q-tab-panels v-model="manualImportMethod" animated>
-              <q-tab-panel name="single_log">
+            <q-tab-panels v-model="manualImportMethod" animated class="">
+              <q-tab-panel name="single_log" class="q-pl-none q-py-none" :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
                 <q-input
                   v-model="queueInDataEntrySingleLog"
                   outlined
                   autogrow
+                  :bg-color="darkMode ? 'grey-8' : 'grey-1'"
                   input-style="min-height: 16em;"
                   :label="$t('One single JSON log at a time')"
                   :rules="[ val => isProperJson(val) || 'JSON Syntax Error(s)' ]"
@@ -109,11 +118,12 @@
                 </q-input>
               </q-tab-panel>
 
-              <q-tab-panel name="multiple_logs">
+              <q-tab-panel name="multiple_logs" class="q-pl-none q-py-none" :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
                 <q-input
                   v-model="queueInDataEntryMultiLog"
                   outlined
                   autogrow
+                  :bg-color="darkMode ? 'grey-8' : 'grey-1'"
                   input-style="min-height: 16em;"
                   :label="$t('One JSON entry per line')"
                   :rules="[ val => val != null || 'Common, give me some JSON!' ]"
@@ -141,11 +151,12 @@
                 </q-input>
               </q-tab-panel>
 
-              <q-tab-panel name="log_file">
+              <q-tab-panel name="log_file" class="q-pl-none q-py-none" :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
                 <q-file
                   outlined
                   bottom-slots
                   v-model="manualImportFileInput"
+                  :bg-color="darkMode ? 'grey-8' : 'grey-1'"
                   :label="$t('Click or Drop a file here')"
                   multiple
                   counter

@@ -15,12 +15,12 @@
   color: var(--q-color-textForPrimaryButton) !important;
 }
 
-// Axon style / To force the bar under the name of tabs to be coloured with the gradient
-.q-tab__indicator.text-primary {
-  color: transparent !important;
-  background: rgb(2,0,36) !important;
-  background: linear-gradient(90deg, #50B7F8 0%, #B74F92 100%) !important;
-}
+// // Axon style / To force the bar under the name of tabs to be coloured with the gradient
+// .q-tab__indicator.text-primary {
+//   color: transparent !important;
+//   background: rgb(2,0,36) !important;
+//   background: linear-gradient(90deg, #50B7F8 0%, #B74F92 100%) !important;
+// }
 
 // Axon style / To force the background of popup dialogs in Dark mode
 .q-dialog .q-card--dark,
