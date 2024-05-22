@@ -1087,7 +1087,7 @@ export default {
           // Dealing with multiple Logs, one per line
 
           // Call itself while providing an Array of Strings
-          this.queueInAdd({ values: values.split('\r'), manualEntry })
+          this.queueInAdd({ values: values.split(/\r|\n/g), manualEntry })
         } else {
           // Dealing with Single Log
 
