@@ -14,19 +14,36 @@
           </q-tooltip>
         </q-btn>
         <q-separator vertical /> -->
-        <q-btn no-caps flat dense icon="file_download" :label="$t('Export SMA Policy')" />
+
+        <q-space />
+
+        <q-btn
+          no-caps
+          dense
+          class="q-px-sm"
+          icon="file_download"
+          color="primary"
+          :label="$t('Export SMA Policy')"
+        />
         <!-- <q-btn no-caps flat dense icon="file_download" :label="$t('Export JQ')" disable /> -->
         <!-- <q-btn no-caps flat dense icon="visibility" :label="$t('Show JQ')" v-if="!showJqOutput" @click="buildJqFilter(); buildJqTransform(); showJqOutput = true" />
         <q-btn no-caps flat dense icon="visibility_off" :label="$t('Hide JQ output')" v-else @click="showJqOutput = false" /> -->
 
         <q-space />
 
-        <q-btn no-caps dense class="q-px-sm" icon="settings" :label="$t('Settings')" @click="showSettings = !showSettings" />
+        <q-btn
+          no-caps
+          dense
+          class="q-px-sm"
+          icon="settings"
+          :label="$t('Settings')"
+          @click="showSettings = !showSettings"
+        />
 
       </q-toolbar>
     </q-header>
     <div class="">
-      <div class="">
+      <!-- <div class="q-mb-md">
           <q-tooltip content-style="font-size: 1rem;">
             <div class="row content-center items-center q-gutter-x-sm">
               <q-linear-progress :value=".75" color="indigo" size="lg" stripe style="width: 5rem;" track-color="grey-10"/>
@@ -44,21 +61,44 @@
           </q-tooltip>
         <q-linear-progress :value="queueIn.length / queueInMaxSize" color="indigo" size="lg" stripe track-color="grey-10" />
         <q-linear-progress :value="processedLogsCount / processedLogsMaxSize" color="teal" size="lg" track-color="grey-10" />
-      </div>
-      <div class="text-h4 q-my-md" style="opacity:.6">
+      </div> -->
+      <!-- <div class="text-h4 q-my-md" style="opacity:.6">
         {{ $t('Import JSON') }}
-      </div>
+      </div> -->
       <q-expansion-item
         group="group"
         default-opened
-        class="shadow-1 overflow-hidden q-mb-lg"
+        class="shadow-1 overflow-hidden q-mb-md"
         style="border-radius: 7px"
         :header-class="darkMode ? 'bg-grey-7 text-grey-4' : 'bg-grey-5 text-grey-9'"
-        expand-icon-class="text-white"
+        :expand-icon-class="darkMode ? 'text-grey-3' : 'text-grey-10'"
       >
         <template v-slot:header>
           <q-item-section>
             <span style="opacity:.8" class="text-bold">{{ $t('Sample Messages') }}</span>
+          </q-item-section>
+          <q-item-section>
+            <div class="" v-if="processedLogsCount + queueIn.length">
+              <q-tooltip content-style="font-size: 1rem;">
+                <div class="row content-center items-center q-gutter-x-sm">
+                  <q-linear-progress :value=".75" color="indigo" size="lg" stripe style="width: 5rem;" track-color="grey-10"/>
+                  <div>
+                    {{ $t('Inbound Queue: {queueInOverQueueInMaxSize}% ({queueIn} / {queueInMaxSize}).', { queueInOverQueueInMaxSize: (queueInMaxSize != 0 ? Math.round(queueIn.length / queueInMaxSize * 100) : '_'), queueIn: queueIn.length, queueInMaxSize}) }}
+                  </div>
+                </div>
+                <div class="row content-center items-center q-gutter-x-sm">
+                  <q-linear-progress :value=".75" color="teal" size="lg" style="width: 5rem;" track-color="grey-10" />
+                  <div>
+                    {{ $t('Processed Messages: {processedLogsCountOverProcessedLogsMaxSize}% ({processedLogsCount} / {processedLogsMaxSize}).', { processedLogsCountOverProcessedLogsMaxSize: (processedLogsMaxSize != 0 ? Math.round(processedLogsCount / processedLogsMaxSize * 100) : '_'), processedLogsCount: processedLogsCount, processedLogsMaxSize}) }}
+                  </div>
+                </div>
+                <!-- <q-separator class="q-my-sm" />
+                <q-icon name="o_info" color="blue-10" size="sm" class="q-mr-sm" /><span>{{ $t('Total Messages sent by the backend: {incomingLogCount}', { incomingLogCount }) }}</span><br>
+                <span>{{ $t('This includes the messages already in transit when the Live Tail got stopped.') }}</span> -->
+              </q-tooltip>
+              <q-linear-progress :value="queueIn.length / queueInMaxSize" color="indigo" size="lg" stripe :track-color="darkMode ? 'grey-9' : 'grey-7'" />
+              <q-linear-progress :value="processedLogsCount / processedLogsMaxSize" color="teal" size="lg" :track-color="darkMode ? 'grey-9' : 'grey-7'" />
+            </div>
           </q-item-section>
         </template>
         <q-card :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
@@ -70,7 +110,7 @@
             <q-btn-toggle
               v-model="manualImportMethod"
               style="border-radius: 0%;"
-              :color="darkMode ? 'grey-8' : 'grey-5'"
+              :color="darkMode ? 'grey-9' : 'grey-5'"
               :text-color="darkMode ? 'grey-5' : 'grey-8'"
               :toggle-color="darkMode ? 'grey-4' : 'grey-3'"
               :toggle-text-color="darkMode ? 'grey-10' : 'grey-10'"
@@ -85,17 +125,27 @@
             />
 
             <q-tab-panels v-model="manualImportMethod" animated class="">
-              <q-tab-panel name="single_log" class="q-pl-none q-py-none" :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
+              <q-tab-panel
+                name="single_log"
+                class="q-pl-none q-py-none"
+                :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'"
+                style="height: calc(100vh - (19rem)); min-height: 16rem;"
+              >
                 <q-input
                   v-model="queueInDataEntrySingleLog"
                   outlined
-                  autogrow
+                  type="textarea"
+                  style="height: calc(100vh - (19.5rem)); min-height: 15.5rem;"
+                  input-style="height: calc(100vh - (22.5rem)); min-height: 12.5rem;"
                   :bg-color="darkMode ? 'grey-8' : 'grey-1'"
-                  input-style="min-height: 16em;"
                   :label="$t('One single JSON log at a time')"
                   :rules="[ val => isProperJson(val) || 'JSON Syntax Error(s)' ]"
                   @keypress.shift.enter.prevent="queueInAdd({values: queueInDataEntrySingleLog, manualEntry: true});"
                 >
+                <!-- input-class="full-height" -->
+                <!-- input-style="height: calc(100vh - (33rem)); min-height: 16rem; max-height: calc(100vh - (33rem));" -->
+                <!-- autogrow -->
+                <!-- input-style="min-height: 16em;" -->
                   <template v-slot:after>
                     <div class="full-height justify-around q-gutter-y-lg">
                       <q-btn dense icon="playlist_add" color="primary" :disable="!isProperJson(queueInDataEntrySingleLog)" @click="queueInAdd({ values: queueInDataEntrySingleLog, manualEntry: true })" >
@@ -118,17 +168,25 @@
                 </q-input>
               </q-tab-panel>
 
-              <q-tab-panel name="multiple_logs" class="q-pl-none q-py-none" :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
+              <q-tab-panel
+                name="multiple_logs"
+                class="q-pl-none q-py-none"
+                :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'"
+                style="height: calc(100vh - (19rem)); min-height: 16rem;"
+              >
                 <q-input
                   v-model="queueInDataEntryMultiLog"
                   outlined
-                  autogrow
+                  type="textarea"
                   :bg-color="darkMode ? 'grey-8' : 'grey-1'"
-                  input-style="min-height: 16em;"
+                  style="height: calc(100vh - (19.5rem)); min-height: 15.5rem;"
+                  input-style="height: calc(100vh - (22.5rem)); min-height: 12.5rem;"
                   :label="$t('One JSON entry per line')"
                   :rules="[ val => val != null || 'Common, give me some JSON!' ]"
                   @keypress.shift.enter.prevent="queueInAdd({values: queueInDataEntryMultiLog, manualEntry: true});"
                 >
+                <!-- input-style="height: calc(100vh - (33rem)); min-height: 16rem; max-height: calc(100vh - (33rem));" -->
+                <!-- autogrow -->
                   <template v-slot:after>
                     <div class="full-height justify-around q-gutter-y-lg">
                       <q-btn class="row" dense icon="playlist_add" color="primary" :disable="!queueInDataEntryMultiLog.length" @click="queueInAdd({ values: queueInDataEntryMultiLog, manualEntry: true, multiLogs: true })" >
@@ -151,7 +209,12 @@
                 </q-input>
               </q-tab-panel>
 
-              <q-tab-panel name="log_file" class="q-pl-none q-py-none" :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
+              <q-tab-panel
+                name="log_file"
+                class="q-pl-none q-py-none"
+                :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'"
+                style="height: calc(100vh - (19rem)); min-height: 16rem;"
+              >
                 <q-file
                   outlined
                   bottom-slots
@@ -161,8 +224,10 @@
                   multiple
                   counter
                   max-files="10"
-                  input-style="min-height: 15.75em;"
+                  input-style="height: calc(100vh - (22.5rem)); min-height: 12.5rem;"
                 >
+                  <!-- input-style="height: calc(100vh - (33rem)); min-height: 15.75em; max-height: calc(100vh - (33rem));" -->
+                  <!-- input-style="min-height: 15.75em;" -->
                   <template v-slot:append>
                     <q-icon v-if="manualImportFileInput !== null" name="o_close" @click.stop="manualImportFileInput = null" class="cursor-pointer" />
                     <q-icon name="o_note_add" @click.stop />
@@ -240,10 +305,14 @@
         group="group"
         class="shadow-1 overflow-hidden"
         style="border-radius: 7px"
-        :label="$t('JSON Mapping')"
         :header-class="darkMode ? 'bg-grey-7 text-grey-4' : 'bg-grey-5 text-grey-9'"
-        expand-icon-class="text-white"
+        :expand-icon-class="darkMode ? 'text-grey-3' : 'text-grey-10'"
       >
+      <template v-slot:header>
+          <q-item-section>
+            <span style="opacity:.8" class="text-bold">{{ $t('JSON Mapping') }}</span>
+          </q-item-section>
+        </template>
       <q-card class="q-mt-md fit column">
         <div
           class="row items-stretch text-bold"
@@ -281,7 +350,7 @@
         <!-- DATA -->
           <!-- style="height: calc(100vh - (50px + 7px + 10px + 30px));" -->
         <q-virtual-scroll
-          style="height: calc(100vh - (15rem)); min-height: 10rem;"
+          style="height: calc(100vh - (16rem)); min-height: 10rem;"
           :items="orderBy(jsonPathes, 'name')"
           virtual-scroll-item-size="48"
           :class="(darkMode ? 'dark' : '')"
@@ -634,17 +703,18 @@
                 map-options
                 dense
                 style="min-width: 150px"
-              />
+              >
+                <template v-slot:after>
+                  <q-btn color="primary" icon="save" @click="saveLanguageSettings()" :loading="savingAction" >
+                    <q-tooltip content-style="font-size: 1em">
+                      {{ $t('Save settings to local web browser.') }}
+                    </q-tooltip>
+                  </q-btn>
+                </template>
+              </q-select>
             </div>
           </div>
 
-          <!-- <q-card-actions vertical class="justify-around q-px-md">
-            <q-btn color="primary" icon="save" @click="saveLanguageSettings()" :loading="savingAction" >
-              <q-tooltip content-style="font-size: 1em">
-                {{ $t('Save settings to local web browser.') }}
-              </q-tooltip>
-            </q-btn>
-          </q-card-actions> -->
         </q-card-section>
         <q-card-actions
           align="right"
@@ -654,23 +724,10 @@
           <q-btn
             :color="darkMode ? 'grey-9' : 'grey-4'"
             :text-color="darkMode ? 'grey-4' : 'grey-9'"
-            label="Cancel"
+            label="Close"
             no-caps
             v-close-popup
           />
-          <q-btn
-            color="primary"
-            text-color="green-4"
-            label="Save"
-            no-caps
-            @click="saveLanguageSettings()"
-            v-close-popup
-            :loading="savingAction"
-          >
-            <q-tooltip content-style="font-size: 1em">
-              {{ $t('Save settings to local web browser.') }}
-            </q-tooltip>
-          </q-btn>
         </q-card-actions>
       </q-card>
     </q-dialog>
