@@ -1099,9 +1099,9 @@ export default {
             try {
               // this.queueIn.push(JSON.parse(values))
               this.queueInPush(JSON.parse(values), manualEntry)
-            } catch {
+            } catch (error) {
               // Not proper JSON
-              console.log('String is not a proper JSON')
+              console.log(`String is not a proper JSON. Reason: ${error.message}`)
             }
           }
         }
@@ -1116,9 +1116,9 @@ export default {
             if (value.length > 0) {
               try {
                 this.queueInPush(JSON.parse(value), manualEntry)
-              } catch {
+              } catch (error) {
                 // Not proper JSON
-                console.log('String is not a proper JSON')
+                console.log(`String is not a proper JSON. Reason: ${error.message}`)
               }
             }
           } else {
