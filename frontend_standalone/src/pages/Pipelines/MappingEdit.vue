@@ -24,6 +24,7 @@
           icon="file_download"
           color="primary"
           :label="$t('Export SMA Policy')"
+          @click="exportSmaPolicy()"
         />
         <!-- <q-btn no-caps flat dense icon="file_download" :label="$t('Export JQ')" disable /> -->
         <!-- <q-btn no-caps flat dense icon="visibility" :label="$t('Show JQ')" v-if="!showJqOutput" @click="buildJqFilter(); buildJqTransform(); showJqOutput = true" />
@@ -352,7 +353,7 @@
         <q-virtual-scroll
           style="height: calc(100vh - (16rem)); min-height: 10rem;"
           :items="orderBy(jsonPathes, 'name')"
-          virtual-scroll-item-size="48"
+          virtual-scroll-item-size="49"
           :class="(darkMode ? 'dark' : '')"
         >
           <template v-slot="{ item, index }">
@@ -477,6 +478,15 @@
       </q-card>
     </q-expansion-item>
 
+    <!-- <q-separator />
+    <div>
+      {{ jsonPathes }}
+    </div>
+
+    <q-separator />
+    <div>
+      {{ smaTransformOutput }}
+    </div> -->
     </div>
 
     <q-dialog v-model="showSettings" persistent>
@@ -743,11 +753,11 @@
 //       ##    ## ##    ## ##    ##   ##  ##           ##
 //        ######   ######  ##     ## #### ##           ##
 
-import { copyToClipboard } from 'quasar'
+import { exportFile, copyToClipboard, uid } from 'quasar'
 import { mapState } from 'vuex'
 import mixinSharedDarkMode from 'src/mixins/mixin-Shared-DarkMode'
 import mixinSharedRightToLeft from 'src/mixins/mixin-Shared-RightToLeft'
-import mixinSharedBuildJq from 'src/mixins/mixin-Shared-BuildJq'
+import mixinSharedBuildSmaPolicy from 'src/mixins/mixin-Shared-BuildSmaPolicy'
 import Vue2Filters from 'vue2-filters'
 import { languageOptions, switchLanguageTo } from 'src/i18n/shared'
 import lrWebConsoleToggle from 'components/lrWebConsole/toggle.vue'
@@ -757,13 +767,13 @@ export default {
   mixins: [
     mixinSharedDarkMode, // Shared computed to access and update the DarkMode
     mixinSharedRightToLeft, // Shared functions to deal with LTR/RTL languages
-    mixinSharedBuildJq, // Shared JQ Building functions (Filter and Transform)
+    mixinSharedBuildSmaPolicy, // Shared JQ Building functions (Filter and Transform)
     Vue2Filters.mixin
   ],
   components: { lrWebConsoleToggle },
   data () {
     return {
-      pipelineUid: '', // UUID of the pipeline, used as the UUID of the tail too. Needed to be able to kill it on the server
+      pipelineUid: uid(), // UUID of the pipeline, used as the UUID of the tail too. Needed to be able to kill it on the server
       search: '',
       showTypesInMainList: false,
       showTypesInPopup: true,
@@ -894,6 +904,10 @@ export default {
       processedLogs: [], // The logs, once processed
       processedLogsCount: 0, // The count of processed logs
       jsonPathes: [], // The extracted keys and values from the processedLogSample. Used for display and mapping. Saved.
+      // jsonPathes: JSON.parse('[ { "name": ".", "leaf": "", "depth": 0, "seenInLogCount": 3, "values": [ { "type": "object", "count": 3 } ] }, { "name": ".\\"@metadata\\"", "leaf": "@metadata", "depth": 1, "seenInLogCount": 3, "values": [ { "type": "object", "count": 3 } ] }, { "name": ".\\"@metadata\\".\\"beat\\"", "leaf": "beat", "depth": 2, "seenInLogCount": 3, "values": [ { "value": "samplebeat", "type": "string", "count": 3 } ] }, { "name": ".\\"@metadata\\".\\"type\\"", "leaf": "type", "depth": 2, "seenInLogCount": 3, "values": [ { "value": "_doc", "type": "string", "count": 3 } ] }, { "name": ".\\"@metadata\\".\\"version\\"", "leaf": "version", "depth": 2, "seenInLogCount": 3, "values": [ { "value": "1.4.2", "type": "string", "count": 3 } ] }, { "name": ".\\"timestamp\\"", "leaf": "timestamp", "depth": 1, "seenInLogCount": 3, "values": [ { "value": "20210422T16:40:00", "type": "string", "count": 1 }, { "value": "20210422T16:43:00", "type": "string", "count": 1 }, { "value": "20210422T16:45:12", "type": "string", "count": 1 } ] }, { "name": ".\\"id\\"", "leaf": "id", "depth": 1, "seenInLogCount": 2, "values": [ { "value": "abcdef-1234", "type": "string", "count": 1 }, { "value": "xyzmno-8754", "type": "string", "count": 1 } ], "mappedField": "session" }, { "name": ".\\"destination\\"", "leaf": "destination", "depth": 1, "seenInLogCount": 1, "values": [ { "type": "object", "count": 1 } ] }, { "name": ".\\"destination\\".\\"ip\\"", "leaf": "ip", "depth": 2, "seenInLogCount": 1, "values": [ { "value": "172.16.1.2", "type": "string", "count": 1 } ], "mappedField": "dip" }, { "name": ".\\"destination\\".\\"port\\"", "leaf": "port", "depth": 2, "seenInLogCount": 1, "values": [ { "value": 443, "type": "number", "count": 1 } ], "mappedField": "dport" }, { "name": ".\\"source\\"", "leaf": "source", "depth": 1, "seenInLogCount": 1, "values": [ { "type": "object", "count": 1 } ] }, { "name": ".\\"source\\".\\"ip\\"", "leaf": "ip", "depth": 2, "seenInLogCount": 1, "values": [ { "value": "192.168.0.1", "type": "string", "count": 1 } ], "mappedField": "sip" }, { "name": ".\\"source\\".\\"port\\"", "leaf": "port", "depth": 2, "seenInLogCount": 1, "values": [ { "value": 44444, "type": "number", "count": 1 } ], "mappedField": "sport" } ]'), // The extracted keys and values from the processedLogSample. Used for display and mapping. Saved.
+      // jsonPathes: JSON.parse('[ { "name": ".", "leaf": "", "depth": 0, "seenInLogCount": 4, "values": [ { "type": "object", "count": 4 } ] }, { "name": ".\\"@metadata\\"", "leaf": "@metadata", "depth": 1, "seenInLogCount": 4, "values": [ { "type": "object", "count": 4 } ] }, { "name": ".\\"@metadata\\".\\"beat\\"", "leaf": "beat", "depth": 2, "seenInLogCount": 4, "values": [ { "value": "samplebeat", "type": "string", "count": 4 } ] }, { "name": ".\\"@metadata\\".\\"type\\"", "leaf": "type", "depth": 2, "seenInLogCount": 4, "values": [ { "value": "_doc", "type": "string", "count": 4 } ] }, { "name": ".\\"@metadata\\".\\"version\\"", "leaf": "version", "depth": 2, "seenInLogCount": 4, "values": [ { "value": "1.4.2", "type": "string", "count": 4 } ] }, { "name": ".\\"timestamp\\"", "leaf": "timestamp", "depth": 1, "seenInLogCount": 4, "values": [ { "value": "20210422T16:40:00", "type": "string", "count": 2 }, { "value": "20210422T16:43:00", "type": "string", "count": 1 }, { "value": "20210422T16:45:12", "type": "string", "count": 1 } ] }, { "name": ".\\"id\\"", "leaf": "id", "depth": 1, "seenInLogCount": 2, "values": [ { "value": "abcdef-1234", "type": "string", "count": 1 }, { "value": "xyzmno-8754", "type": "string", "count": 1 } ], "mappedField": "session" }, { "name": ".\\"destination\\"", "leaf": "destination", "depth": 1, "seenInLogCount": 2, "values": [ { "type": "object", "count": 2 } ] }, { "name": ".\\"destination\\".\\"ip\\"", "leaf": "ip", "depth": 2, "seenInLogCount": 2, "values": [ { "value": "172.16.1.2", "type": "string", "count": 2 } ], "mappedField": "dip" }, { "name": ".\\"destination\\".\\"port\\"", "leaf": "port", "depth": 2, "seenInLogCount": 2, "values": [ { "value": 443, "type": "number", "count": 2 } ], "mappedField": "dport" }, { "name": ".\\"source\\"", "leaf": "source", "depth": 1, "seenInLogCount": 2, "values": [ { "type": "object", "count": 2 } ] }, { "name": ".\\"source\\".\\"ip\\"", "leaf": "ip", "depth": 2, "seenInLogCount": 2, "values": [ { "value": "192.168.0.1", "type": "string", "count": 2 } ], "mappedField": "sip" }, { "name": ".\\"source\\".\\"port\\"", "leaf": "port", "depth": 2, "seenInLogCount": 2, "values": [ { "value": 44444, "type": "number", "count": 2 } ], "mappedField": "sport" }, { "name": ".\\"destination.ip\\"", "leaf": "destination.ip", "depth": 1, "seenInLogCount": 1, "values": [ { "value": "192.168.0.1", "type": "string", "count": 1 } ], "mappedField": "dname" }, { "name": ".\\"\\"", "leaf": "", "depth": 1, "seenInLogCount": 1, "values": [ { "value": "Yep, this one is valid too", "type": "string", "count": 1 } ], "mappedField": "subject" } ]'), // The extracted keys and values from the processedLogSample. Used for display and mapping. Saved.
+      // eslint-disable-next-line quotes
+      // jsonPathes: JSON.parse(`[ { "name": ".", "leaf": "", "depth": 0, "seenInLogCount": 7, "values": [ { "type": "object", "count": 7 } ] }, { "name": ".\\"@metadata\\"", "leaf": "@metadata", "depth": 1, "seenInLogCount": 7, "values": [ { "type": "object", "count": 7 } ] }, { "name": ".\\"@metadata\\".\\"beat\\"", "leaf": "beat", "depth": 2, "seenInLogCount": 7, "values": [ { "value": "samplebeat", "type": "string", "count": 7 } ] }, { "name": ".\\"@metadata\\".\\"type\\"", "leaf": "type", "depth": 2, "seenInLogCount": 7, "values": [ { "value": "_doc", "type": "string", "count": 7 } ] }, { "name": ".\\"@metadata\\".\\"version\\"", "leaf": "version", "depth": 2, "seenInLogCount": 7, "values": [ { "value": "1.4.2", "type": "string", "count": 7 } ] }, { "name": ".\\"timestamp\\"", "leaf": "timestamp", "depth": 1, "seenInLogCount": 7, "values": [ { "value": "20210422T16:40:00", "type": "string", "count": 3 }, { "value": "20210422T16:43:00", "type": "string", "count": 2 }, { "value": "20210422T16:45:12", "type": "string", "count": 2 } ] }, { "name": ".\\"id\\"", "leaf": "id", "depth": 1, "seenInLogCount": 4, "values": [ { "value": "abcdef-1234", "type": "string", "count": 2 }, { "value": "xyzmno-8754", "type": "string", "count": 2 } ] }, { "name": ".\\"destination\\"", "leaf": "destination", "depth": 1, "seenInLogCount": 3, "values": [ { "type": "object", "count": 3 } ] }, { "name": ".\\"destination\\".\\"ip\\"", "leaf": "ip", "depth": 2, "seenInLogCount": 3, "values": [ { "value": "172.16.1.2", "type": "string", "count": 3 } ] }, { "name": ".\\"destination\\".\\"port\\"", "leaf": "port", "depth": 2, "seenInLogCount": 3, "values": [ { "value": 443, "type": "number", "count": 3 } ] }, { "name": ".\\"source\\"", "leaf": "source", "depth": 1, "seenInLogCount": 3, "values": [ { "type": "object", "count": 3 } ] }, { "name": ".\\"source\\".\\"ip\\"", "leaf": "ip", "depth": 2, "seenInLogCount": 3, "values": [ { "value": "192.168.0.1", "type": "string", "count": 3 } ] }, { "name": ".\\"source\\".\\"port\\"", "leaf": "port", "depth": 2, "seenInLogCount": 3, "values": [ { "value": 44444, "type": "number", "count": 3 } ] } ]`), // The extracted keys and values from the processedLogSample. Used for display and mapping. Saved.
       processInBackground: false,
       processInBackgroundMaxRate: 3, // How many queue items to process per second
       queueInMaxSize: 200, // Maximum number of log messages in queueIn
@@ -911,6 +925,11 @@ export default {
       // showManualImport: false, // Collapse / Hide Manual Import panel
       manualImportMethod: 'single_log', // How is the user going to manually import Logs
       queueInDataEntrySingleLog: `{
+  "@metadata":{
+    "beat":"samplebeat",
+    "type":"_doc",
+    "version":"1.4.2"
+  },
   "timestamp":"20210422T16:40:00",
   "destination":{
     "ip":"172.16.1.2",
@@ -919,13 +938,18 @@ export default {
   "source":{
     "ip":"192.168.0.1",
     "port":44444
-  }
+  },
+  "destination.ip":"192.168.0.1",
+  "destination's ip":"192.168.0.2",
+  "":"Yep, this one is valid too"
 }`, // To enter log data by hand
-      queueInDataEntryMultiLog: '{"timestamp":"20210422T16:40:00","id":"abcdef-1234"}\r{"timestamp":"20210422T16:43:00","id":"xyzmno-8754"}', // To enter log data by hand, one per line
+      queueInDataEntryMultiLog: '{"@metadata":{"beat":"samplebeat","type":"_doc","version":"1.4.2"},"timestamp":"20210422T16:40:00","id":"abcdef-1234"}\r{"timestamp":"20210422T16:43:00","@metadata":{"beat":"samplebeat","type":"_doc","version":"1.4.2"},"id":"xyzmno-8754"}\r{"@metadata":{"beat":"samplebeat","type":"_doc","version":"1.4.2"},"timestamp":"20210422T16:45:12","destination":{"ip":"172.16.1.2","port":443},"source":{"ip":"192.168.0.1","port":44444}}', // To enter log data by hand, one per line
       manualImportFileInput: null, // File
       showSettings: false, // Showing up the Settings modal
       savingAction: false, // Waiting for API to respond
-      selectedLanguage: this.$i18n.locale
+      selectedLanguage: this.$i18n.locale, // The selected language
+      smaTransformOutput: '', // The automacically built SMA Policy Transform output
+      pipelineName: uid() // The name of the pipeline
     }
   },
   computed: {
@@ -1257,11 +1281,11 @@ export default {
             Object.keys(leaf).forEach(key => {
               // Escape and quote the key, to deal with funny edge cases
 
-              // Escape any double quotes, as we will need them later
-              const escappedKey = String(key).replaceAll('"', '\\"')
+              // Escape any single quotes, as we will need them later
+              const escappedKey = String(key).replaceAll('\'', '\\\'')
 
               // Then quote stuff up
-              thisKeyPath = (isParentAnArray ? parentPath + '[' + key + ']' : parentPath + '.' + `"${escappedKey}"`)
+              thisKeyPath = (isParentAnArray ? parentPath + '[' + key + ']' : parentPath + '.' + `['${escappedKey}']`)
 
               // Upsert it first
               this.upsertToJsonPaths({ thisKeyPath: thisKeyPath, depth: depth, key: key, value: leaf[key] })
@@ -1345,6 +1369,65 @@ export default {
         this.scheduleNextBackgroundProcess()
       }
     }, // processLogSampleInBackground
+
+    //      ######  ##     ##    ###          ########   #######  ##       ####  ######  ##    ##
+    //     ##    ## ###   ###   ## ##         ##     ## ##     ## ##        ##  ##    ##  ##  ##
+    //     ##       #### ####  ##   ##        ##     ## ##     ## ##        ##  ##         ####
+    //      ######  ## ### ## ##     ##       ########  ##     ## ##        ##  ##          ##
+    //           ## ##     ## #########       ##        ##     ## ##        ##  ##          ##
+    //     ##    ## ##     ## ##     ##       ##        ##     ## ##        ##  ##    ##    ##
+    //      ######  ##     ## ##     ##       ##         #######  ######## ####  ######     ##
+
+    exportSmaPolicy () {
+      // Steps:
+      // 1. Build SMA Policy
+      // 2. Push the policy as file to download locally
+
+      this.smaTransformOutput = this.buildSmaPolicyTransformFromParams({
+        pipelineUid: this.pipelineUid,
+        pipelineName: this.pipelineName,
+        beatName: this.beatName || 'somebeat',
+        extractMessageFieldOnly: this.extractMessageFieldOnly,
+        messageFieldPath: this.messageFieldPath,
+        jsonPathes: this.jsonPathes
+      })
+
+      // Fallback file extension and Mime type (if not possible to assign a better one based on Shipper)
+      const fileExtension = '.json'
+      const fileMimeType = 'application/json'
+
+      // const fileName = `sma_policy.${this.beatName}_${this.pipelineName}_${this.pipelineUid}${fileExtension}`
+      const fileName = `sma_policy.${this.beatName}${fileExtension}`
+
+      const notificationPopupId = this.$q.notify({
+        icon: 'cloud_download',
+        message: this.$t('Downloading SMA Policy file...'),
+        caption: fileName,
+        type: 'ongoing'
+      })
+
+      // Push file out
+      const status = exportFile(fileName, JSON.stringify(this.smaTransformOutput, null, 2), fileMimeType)
+
+      if (status === true) {
+        notificationPopupId({
+          type: 'positive',
+          color: 'positive',
+          icon: 'check',
+          message: this.$t('SMA Policy file downloaded'),
+          caption: fileName
+        })
+      } else {
+        notificationPopupId({
+          type: 'negative',
+          color: 'negative',
+          icon: 'o_report_problem',
+          message: this.$t('Problem while downloading SMA Policy file:'),
+          caption: status
+        })
+        console.log('Error: ' + status)
+      }
+    },
 
     //     ##      ## #### ##    ## ####
     //     ##  ##  ##  ##  ##   ##   ##
