@@ -1,6 +1,10 @@
 // mixin-Shared-BuildJq.js
+import Vue2Filters from 'vue2-filters'
 
 export default {
+  mixins: [
+    Vue2Filters.mixin
+  ],
   methods: {
     // buildJqFilterFromParams (pipelineUid, pipelineName, beatName, loggedInUser) {
     //   let jqFilter = ''
@@ -37,7 +41,9 @@ export default {
         // group: `${beatName} - ${pipelineName} - ${pipelineUid}`,
         // grouporder: 1,
         // groupcatchall: true,
-        filter: `@.@metadata.beat == '${beatName}'`,
+        // "filter": "@.@metadata.beat == 'eventhubbeat' && @.response.resourceId =~ /(?i)Microsoft.aadiam/",
+        // filter: `@.@metadata.beat == '${beatName}'`,
+        filter: null,
         schemarule: {
           fanout: {
             InputField: null
@@ -225,15 +231,121 @@ export default {
         }
       }
 
+      let baseMessageFieldPath = '' // TODO: Get rid of baseMessageFieldPath when dealing properly with Parse JSON modifier as opposed to just extracting the message field
+      if (extractMessageFieldOnly && String(messageFieldPath || '').length) {
+        if (!(smaPolicyTransform.schemarule.ConvertoJson && Array.isArray(smaPolicyTransform.schemarule.ConvertoJson))) {
+          smaPolicyTransform.schemarule.ConvertoJson = []
+        }
+
+        smaPolicyTransform.schemarule.ConvertoJson.push(`$${messageFieldPath}`)
+        baseMessageFieldPath = messageFieldPath
+      }
+
       jsonPathes.forEach(path => {
         if (path.mappedField) {
           smaPolicyTransform.transforms.push({
-            inputrule: `$${path.name}`,
+            inputrule: `$${baseMessageFieldPath}${path.name}`, // TODO: Get rid of baseMessageFieldPath when dealing properly with Parse JSON modifier as opposed to just extracting the message field
             LRSchemaField: path.mappedField,
             type: 'String',
             default: null,
             alternativefields: [],
-            format: null
+            format: null,
+            path // TODO: Remove this - XXXX
+          })
+        }
+
+        if (path.modifiers && path.modifiers.length > 0) {
+          path.modifiers.forEach(modifier => {
+            if (modifier === 'Rule Filter selector') {
+              // "filter": "@.['@metadata'].['beat'] == 'samplebeat' && @.['@metadata'].['version'] == '1.4.2'",
+              smaPolicyTransform.filter = (smaPolicyTransform.filter && smaPolicyTransform.filter.length ? `${smaPolicyTransform.filter} && ` : '') +
+                `@${path.name} == ` +
+                `'${this.orderBy(path.values || [], 'count', -1)[0].value}'`
+            }
+
+            if (modifier === 'Fan out') {
+              if (!(smaPolicyTransform.schemarule.fanout.InputField && Array.isArray(smaPolicyTransform.schemarule.fanout.InputField))) {
+                smaPolicyTransform.schemarule.fanout.InputField = []
+              }
+              // "schemaRule": {
+              //   "fanout": {
+              //     "inputField": [ "$.response.events[*]" ]
+              //   }
+              // },
+              // ... "inputField": [ "$.log.Records[*]", "$.requestParameters.changeBatch.changes[*]" ]
+
+              // "schemarule": {
+              //   "fanout": {
+              //     "InputField": [
+              //       "$.['someArray'][*]"
+              //     ]
+              //   },
+              //   "ConvertoJson": null
+              // },
+
+              // "schemarule": {
+              //   "fanout": {
+              //     "InputField": [
+              //       "$.['some weird cases'].['destination'][*]",
+              //       "$.['someArray'][*]"
+              //     ]
+              //   },
+              //   "ConvertoJson": null
+              // },
+
+              smaPolicyTransform.schemarule.fanout.InputField.push(`$${baseMessageFieldPath}${path.name}[*]`) // TODO: Get rid of baseMessageFieldPath when dealing properly with Parse JSON modifier as opposed to just extracting the message field
+            }
+
+            if (modifier === 'Parse JSON') {
+              if (!(smaPolicyTransform.schemarule.ConvertoJson && Array.isArray(smaPolicyTransform.schemarule.ConvertoJson))) {
+                smaPolicyTransform.schemarule.ConvertoJson = []
+              }
+
+              smaPolicyTransform.schemarule.ConvertoJson.push(`$${baseMessageFieldPath}${path.name}`) // TODO: Get rid of baseMessageFieldPath when dealing properly with Parse JSON modifier as opposed to just extracting the message field
+            }
+
+            if (
+              modifier === 'Sub Rule selector' ||
+              String(modifier || '').startsWith('Sub Rule qualifier ')
+            ) {
+              let tagName = 'tag1'
+              switch (modifier) {
+                case 'Sub Rule qualifier 1':
+                  tagName = 'tag2'
+                  break
+                case 'Sub Rule qualifier 2':
+                  tagName = 'tag3'
+                  break
+                case 'Sub Rule qualifier 3':
+                  tagName = 'tag4'
+                  break
+                case 'Sub Rule qualifier 4':
+                  tagName = 'tag5'
+                  break
+              }
+
+              smaPolicyTransform.transforms.push({
+                inputrule: `$${baseMessageFieldPath}${path.name}`, // TODO: Get rid of baseMessageFieldPath when dealing properly with Parse JSON modifier as opposed to just extracting the message field
+                LRSchemaField: tagName,
+                type: 'String',
+                default: null,
+                alternativefields: [],
+                format: null
+              })
+            }
+
+            if (
+              String(modifier || '').startsWith('Timestamp selector')
+            ) {
+              smaPolicyTransform.transforms.push({
+                inputrule: `$${baseMessageFieldPath}${path.name}`, // TODO: Get rid of baseMessageFieldPath when dealing properly with Parse JSON modifier as opposed to just extracting the message field
+                LRSchemaField: 'normal_msg_date',
+                type: 'Datetime',
+                default: null,
+                alternativefields: [],
+                format: 'yyyy-MM-ddTHH:mm:ss.fffK'
+              })
+            }
           })
         }
       })
