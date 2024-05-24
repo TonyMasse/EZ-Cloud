@@ -1434,6 +1434,15 @@ export default {
         }
       }
 
+      // If we find `.['@metadata'].['beat']`, we automatically flag it as a Rule Filter selector
+      if (thisPath.name === '.[\'@metadata\'].[\'beat\']') {
+        // Make sure we have a modifiers array
+        if (!(thisPath.modifiers && Array.isArray(thisPath.modifiers))) {
+          thisPath.modifiers = []
+        }
+        thisPath.modifiers.push('Rule Filter selector')
+      }
+
       // Update thisPath
       thisPath.seenInLogCount++
 
