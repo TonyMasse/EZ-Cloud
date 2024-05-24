@@ -340,7 +340,7 @@
             style="width: 20rem;"
             class="row content-center q-mx-sm q-my-xs q-px-sm"
           >
-            {{ $t('Modifiers') }}
+            {{ $t('Rule Flags') }}
           </div>
           <div
             style="width: 1rem;"
@@ -460,18 +460,58 @@
                   </q-item>
                 </template>
               </q-select>
-              <q-select
+              <!-- <q-select
                 dense
                 standout="bg-blue-4 text-white"
                 v-model="item.modifiers"
-                :options="['Parse JSON', 'Stringify JSON', 'Fan out', 'Sub Rule selector', 'Sub Rule qualifier 1', 'Sub Rule qualifier 2', 'Sub Rule qualifier 3', 'Sub Rule qualifier 4', 'Timestamp selector - ISO8601 format', 'Timestamp selector - Unix Timestamp format']"
+                :options="modifiersOptions"
                 style="width: 20rem;"
                 class="q-mx-sm q-my-xs"
                 :popup-content-class="(darkMode ? 'bg-grey-9' : undefined)"
                 :label="$t('Modifiers')"
                 stack-label
                 multiple
-              />
+              /> -->
+              <q-select
+                dense
+                standout="bg-blue-4 text-white"
+                v-model="item.modifiers"
+                emit-value
+                map-options
+                :options="modifiersOptions"
+                :label="$t('Rule Flags')"
+                stack-label
+                style="width: 20rem;"
+                class="q-mx-sm q-my-xs"
+                :popup-content-class="(darkMode ? 'bg-grey-9' : undefined)"
+                multiple
+                use-input
+                input-debounce="0"
+                @filter="filterModifiersOptions"
+              >
+                <template v-slot:option="scope">
+                  <q-item
+                    v-bind="scope.itemProps"
+                    v-on="scope.itemEvents"
+                    v-if="scope.opt.label && scope.opt.label !== '<hr>'"
+                    style="width: 25rem;"
+                  >
+                    <q-item-section>
+                      <q-item-label v-if="scope.opt.value && scope.opt.value.length > 0"><div class="row justify-between"><div class="text-bold">{{ scope.opt.label }}</div><!--<div class="fixed-font text-caption">&lt;{{ scope.opt.value }}&gt;</div>--></div></q-item-label>
+                      <q-item-label v-else class="text-bold">{{ scope.opt.label }}</q-item-label>
+                      <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-separator v-if="scope.opt.separator" inset :spaced="scope.opt.label && scope.opt.label === '<hr>'"  />
+                </template>
+                <template v-slot:no-option>
+                  <q-item>
+                    <q-item-section class="text-grey">
+                      No results
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
             </div>
           </template>
         </q-virtual-scroll>
@@ -897,6 +937,36 @@ export default {
         { label: 'NAT TCP/UDP Port (Impacted)', value: 'dnatport', description: 'The Network Address Translated (NAT) port to which activity was targeted (i.e., server, target port).' }
       ],
       mdiTagsOptions: [], // Used in the Select field
+      // modifiersOptions: [ // Used in the Select field
+      //   // 'Parse JSON',
+      //   // 'Stringify JSON',
+      //   // 'Fan out',
+      //   'Sub Rule selector',
+      //   'Sub Rule qualifier 1',
+      //   'Sub Rule qualifier 2',
+      //   'Sub Rule qualifier 3',
+      //   'Sub Rule qualifier 4',
+      //   'Timestamp selector - ISO8601 format',
+      //   'Timestamp selector - Unix Timestamp format'
+      // ],
+      modifiers: [ // Used by filterModifiersOptions to populate modifiersOptions
+        { label: 'Rule Filter', disable: true, description: '', separator: true },
+        { label: 'Filter selector', value: 'Rule Filter selector', description: 'This field and its most common value (in this sample) must be present for this parsing rule to activate' },
+        { label: 'Log Data Transform', disable: true, description: '', separator: true },
+        { label: 'Parse JSON', value: 'Parse JSON', description: 'This field contains stringified JSON and must be parsed into a native JSON object' },
+        // { label: 'Stringify JSON', value: 'Stringify JSON' },
+        { label: 'Fan out', value: 'Fan out', description: 'A new raw log should be produced for each item of this array' },
+        { label: 'Sub Rule Identifiers', disable: true, description: '', separator: true },
+        { label: 'Sub Rule selector', value: 'Sub Rule selector', description: 'This field should be mapped to `tag1`' },
+        { label: 'Sub Rule qualifier 1', value: 'Sub Rule qualifier 1', description: 'This field should be mapped to `tag2`' },
+        { label: 'Sub Rule qualifier 2', value: 'Sub Rule qualifier 2', description: 'This field should be mapped to `tag3`' },
+        { label: 'Sub Rule qualifier 3', value: 'Sub Rule qualifier 3', description: 'This field should be mapped to `tag4`' },
+        { label: 'Sub Rule qualifier 4', value: 'Sub Rule qualifier 4', description: 'This field should be mapped to `tag5`' },
+        { label: 'Timestamp', disable: true, description: '', separator: true },
+        { label: 'ISO8601 format', value: 'Timestamp selector - ISO8601 format', description: 'This field is a timestamp in one of the ISO8601 formats (ie. `2024-05-24T21:01:19Z`, `2024-05-25T04:01:19+07:00`, ...)' },
+        { label: 'Unix Timestamp format', value: 'Timestamp selector - Unix Timestamp format', description: 'This field is a timestamp in Unix format (ie. `1716577594`)' }
+      ],
+      modifiersOptions: [], // Used in the Select field
       wrapSingleStringLog: false,
       incomingLogCount: 0, // Number of lines of logs sent over the socket
       queueIn: [], // To feed from the Server Tail, or the queueInDataEntrySingleLog field
@@ -1017,6 +1087,19 @@ export default {
         update(() => {
           const needle = val.toLowerCase()
           this.mdiTagsOptions = this.mdiTags.filter(v => (v.label + v.value + v.description).toLowerCase().indexOf(needle) > -1)
+        })
+      }
+    }, // filterMdiTagsOptions
+
+    filterModifiersOptions (val, update, abort) {
+      if (val === '') {
+        update(() => {
+          this.modifiersOptions = this.modifiers
+        })
+      } else {
+        update(() => {
+          const needle = val.toLowerCase()
+          this.modifiersOptions = this.modifiers.filter(v => (v.label + v.value + v.description).toLowerCase().indexOf(needle) > -1)
         })
       }
     }, // filterMdiTagsOptions
