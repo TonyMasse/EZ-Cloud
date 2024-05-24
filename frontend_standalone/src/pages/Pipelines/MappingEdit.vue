@@ -1009,9 +1009,33 @@ export default {
     "ip":"192.168.0.1",
     "port":44444
   },
-  "destination.ip":"192.168.0.1",
-  "destination's ip":"192.168.0.2",
-  "":"Yep, this one is valid too"
+  "some weird cases":{
+    "destination":{
+      "ip":"172.16.1.3"
+    },
+    "destination.ip":"172.16.1.4",
+    "destination's ip":"172.16.1.5",
+    "":"Yep, this one is valid too",
+    "Space Invaders":"Taito",
+    "Doom ]|[":"id",
+    "Yar's Revenge":"Atari",
+    "Government \\"Intelligence\\"":"Make-Believe"
+  },
+  "someArray":[
+    {
+      "source":{
+        "ip":"192.168.0.1",
+        "port":44444
+      }
+    },
+    {
+      "source":{
+        "ip":"192.168.0.1",
+        "port":44444
+      }
+    }
+  ],
+  "message":"{\\"destination\\":{\\"ip\\":\\"172.16.1.3\\"},\\"destination.ip\\":\\"172.16.1.4\\",\\"destination's ip\\":\\"172.16.1.5\\",\\"\\":\\"Yep, this one is valid too\\",\\"Space Invaders\\":\\"Taito\\",\\"Doom ]|[\\":\\"id\\",\\"Yar's Revenge\\":\\"Atari\\",\\"Government \\\\\\"Intelligence\\\\\\"\\":\\"Make-Believe\\"}"
 }`, // To enter log data by hand
       queueInDataEntryMultiLog: '{"@metadata":{"beat":"samplebeat","type":"_doc","version":"1.4.2"},"timestamp":"20210422T16:40:00","id":"abcdef-1234"}\r{"timestamp":"20210422T16:43:00","@metadata":{"beat":"samplebeat","type":"_doc","version":"1.4.2"},"id":"xyzmno-8754"}\r{"@metadata":{"beat":"samplebeat","type":"_doc","version":"1.4.2"},"timestamp":"20210422T16:45:12","destination":{"ip":"172.16.1.2","port":443},"source":{"ip":"192.168.0.1","port":44444}}', // To enter log data by hand, one per line
       manualImportFileInput: null, // File
