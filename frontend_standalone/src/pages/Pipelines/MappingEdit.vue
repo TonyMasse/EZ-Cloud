@@ -23,7 +23,7 @@
           class="q-px-sm"
           icon="file_download"
           color="primary"
-          :label="$t('Export SMA Policy')"
+          :label="$t('Export JSON Policy')"
           @click="exportSmaPolicy()"
         />
         <!-- <q-btn no-caps flat dense icon="file_download" :label="$t('Export JQ')" disable /> -->
@@ -31,6 +31,15 @@
         <q-btn no-caps flat dense icon="visibility_off" :label="$t('Hide JQ output')" v-else @click="showJqOutput = false" /> -->
 
         <q-space />
+
+        <q-btn
+          no-caps
+          dense
+          class="q-px-sm"
+          icon="playlist_remove"
+          :label="$t('Clear Processed Logs')"
+          @click="clearProcessedLogs()"
+        />
 
         <q-btn
           no-caps
@@ -104,7 +113,7 @@
         </template>
         <q-card :class="darkMode ? 'bg-grey-8' : 'bg-grey-2'">
           <q-card-section class="text-bold">
-            {{ $t('Import JSON messages to start mapping.') }}
+            {{ $t('Import and process JSON messages to add to the JSON mapping area below.') }}
           </q-card-section>
 
           <q-card-section class="text-bold q-pt-none">
@@ -151,7 +160,7 @@
                     <div class="full-height justify-around q-gutter-y-lg">
                       <q-btn dense icon="playlist_add" color="primary" :disable="!isProperJson(queueInDataEntrySingleLog)" @click="queueInAdd({ values: queueInDataEntrySingleLog, manualEntry: true })" >
                         <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                          {{ $t('Add to Queue') }}
+                          {{ $t('Process and Add to JSON Mapping Area') }}
                         </q-tooltip>
                       </q-btn>
                       <q-btn class="row" dense icon="content_copy" flat :disable="!queueInDataEntrySingleLog.length" @click="copyToClipboard(queueInDataEntrySingleLog)" >
@@ -192,7 +201,7 @@
                     <div class="full-height justify-around q-gutter-y-lg">
                       <q-btn class="row" dense icon="playlist_add" color="primary" :disable="!queueInDataEntryMultiLog.length" @click="queueInAdd({ values: queueInDataEntryMultiLog, manualEntry: true, multiLogs: true })" >
                         <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                          {{ $t('Add to Queue') }}
+                          {{ $t('Process and Add to JSON Mapping Area') }}
                         </q-tooltip>
                       </q-btn>
                       <q-btn class="row" dense icon="content_copy" flat :disable="!queueInDataEntryMultiLog.length" @click="copyToClipboard(queueInDataEntryMultiLog)" >
@@ -238,8 +247,8 @@
                     <div class="full-height justify-around q-gutter-y-lg">
                       <q-btn class="row" dense icon="upload_file" color="primary" :disable="manualImportFileInput == null" >
                         <q-tooltip content-style="font-size: 1rem; min-width: 10rem;">
-                        <span v-if="manualImportFileInput !== null && manualImportFileInput.length > 1" >{{ $t('Add Files Content to Queue') }}</span>
-                        <span v-else >{{ $t('Add File Content to Queue') }}</span>
+                        <span v-if="manualImportFileInput !== null && manualImportFileInput.length > 1" >{{ $t('Process Files Content and Add to JSON Mapping Area') }}</span>
+                        <span v-else >{{ $t('Process File Content and Add to JSON Mapping Area') }}</span>
                         </q-tooltip>
                         <q-menu>
                           <q-list style="min-width: 400px">
@@ -801,6 +810,7 @@ import mixinSharedBuildSmaPolicy from 'src/mixins/mixin-Shared-BuildSmaPolicy'
 import Vue2Filters from 'vue2-filters'
 import { languageOptions, switchLanguageTo } from 'src/i18n/shared'
 import lrWebConsoleToggle from 'components/lrWebConsole/toggle.vue'
+import ConfirmDialog from 'components/Dialogs/ConfirmDialog.vue'
 
 export default {
   name: 'PagePipelineBuilder',
@@ -1009,18 +1019,6 @@ export default {
     "ip":"192.168.0.1",
     "port":44444
   },
-  "some weird cases":{
-    "destination":{
-      "ip":"172.16.1.3"
-    },
-    "destination.ip":"172.16.1.4",
-    "destination's ip":"172.16.1.5",
-    "":"Yep, this one is valid too",
-    "Space Invaders":"Taito",
-    "Doom ]|[":"id",
-    "Yar's Revenge":"Atari",
-    "Government \\"Intelligence\\"":"Make-Believe"
-  },
   "someArray":[
     {
       "source":{
@@ -1127,6 +1125,18 @@ export default {
         })
       }
     }, // filterMdiTagsOptions
+
+    clearProcessedLogs () {
+      this.$q.dialog({
+        component: ConfirmDialog,
+        parent: this,
+        title: this.$t('Confirm reset'),
+        message: this.$t('This will clear all the processed logs as well as all the mapping done so far. Are you sure?'),
+        persistent: true
+      }).onOk(async () => {
+        this.resetData()
+      })
+    },
 
     //     ##     ##    ###    ##    ## ##     ##    ###    ##             #### ##     ## ########   #######  ########  ########
     //     ###   ###   ## ##   ###   ## ##     ##   ## ##   ##              ##  ###   ### ##     ## ##     ## ##     ##    ##
