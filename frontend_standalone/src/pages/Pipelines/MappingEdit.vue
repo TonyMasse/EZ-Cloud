@@ -561,6 +561,11 @@
                 <q-toggle v-model="wrapSingleStringLog" :label="$t('Accept and Wrap non-JSON logs')" />
               </q-item> -->
               <lrWebConsoleToggle
+                v-model="detectAndStripLogrhythmHeader"
+                :label="$t('Detect and strip non-JSON headers from LogRhythm exports')"
+                :color="darkMode ? '#e0e0e0' : '#666666'"
+              />
+              <lrWebConsoleToggle
                 v-model="wrapSingleStringLog"
                 :label="$t('Accept and Wrap non-JSON logs')"
                 :color="darkMode ? '#e0e0e0' : '#666666'"
@@ -998,6 +1003,7 @@ export default {
       queueInMaxSize: 200, // Maximum number of log messages in queueIn
       processedLogsMaxSize: 200, // Maximum number of log messages in processedLogs
       bufferStdOut: '', // Buffer to concatenate incoming STDOUT data until we find a carriage return
+      detectAndStripLogrhythmHeader: true, // Detect the syslog and Open Collector/SMA headers and strip them
       extractMessageFieldOnly: false, // Only extract the content of the .message field
       messageFieldPath: '.message', // Path of the .message / payload field for the given Beat
       messageFieldPathFromTemplate: '.message', // Default path to the .message / payload field, as per the Beat's template
@@ -1225,6 +1231,27 @@ export default {
     //        ##    ##  ##     ## ##       ##     ## ##
     //        ##### ##  #######  ########  #######  ########
 
+    detectAndStripLogrhythmHeaderFromLog (log) {
+      // Detect and strip the LogRhythm header from the log
+      // The header is in the form of:
+      // 06 11 2024 08:21:58 172.17.5.11 <USER:NOTE> 2024-06-11T14:21:58.114Z sysmon |beatname=filebeat|fullyqualifiedbeatname=filebeat|object=labxm|original_message={"@timestamp":"2024-06-11T14:21:58.114Z","@metadata":{"beat":"filebeat","type":"_doc","version":"8.14.0"},"agent":{"version":"8.14.0","ephemeral_id":"5fd33e0e-0e30-43c3-9bf9-4253b617e699","id":"5b233d53-dda1-4e1f-a124-1dff75a04afd","name":"LabXM","type":"filebeat"},"log":{"offset":4174963,"file":{"path":"C:\\Program Files\\LogRhythm\\LogRhythm Mediator Server\\logs\\scmedsvr.log","idxhi":"87556096","idxlo":"82806","vol":"2354678369"}},"message":"06/10/2024 18:22:53.170130 [LabXM] Updated Filter Proxies for 0 Lists","input":{"type":"filestream"},"ecs":{"version":"8.0.0"},"host":{"hostname":"labxm","architecture":"x86_64","os":{"platform":"windows","version":"10.0","family":"windows","name":"Windows Server 2022 Datacenter","kernel":"10.0.20348.2461 (WinBuild.160101.0800)","build":"20348.2461","type":"windows"},"id":"97371520-4c83-4288-b405-3efe0c346f59","ip":["fe80::27ff:37fc:e9b7:9cec","172.17.5.11"],"mac":["00-50-56-95-D9-B4"],"name":"labxm"}}|
+      // Regex:
+      // /^.*?\|original_message=(.*)\|$/s
+
+      if (this.detectAndStripLogrhythmHeader) {
+        // Run the RegEx against the log
+        const logMatch = String(log || '').match(/^.*?\|original_message=(.*)\|$/s)
+
+        // If we have a match, return it
+        if (logMatch && logMatch.length > 1) {
+          return logMatch[1]
+        }
+      }
+
+      // otherwise return the raw log
+      return log
+    }, // detectAndStripLogrhythmHeaderFromLog
+
     queueInAdd ({ values, manualEntry, multiLogs }) {
       if (typeof values === 'string') {
         // deal with it as Strings
@@ -1244,7 +1271,7 @@ export default {
           if (values.length > 0) {
             try {
               // this.queueIn.push(JSON.parse(values))
-              this.queueInPush(JSON.parse(values), manualEntry)
+              this.queueInPush(JSON.parse(this.detectAndStripLogrhythmHeaderFromLog(values)), manualEntry)
             } catch (error) {
               // Not proper JSON
               console.log(`String is not a proper JSON. Reason: ${error.message}`)
@@ -1261,7 +1288,7 @@ export default {
           if (typeof value === 'string') {
             if (value.length > 0) {
               try {
-                this.queueInPush(JSON.parse(value), manualEntry)
+                this.queueInPush(JSON.parse(this.detectAndStripLogrhythmHeaderFromLog(value)), manualEntry)
               } catch (error) {
                 // Not proper JSON
                 console.log(`String is not a proper JSON. Reason: ${error.message}`)
@@ -1410,7 +1437,14 @@ export default {
               thisKeyPath = (isParentAnArray ? parentPath + '[' + key + ']' : parentPath + '.' + `['${escappedKey}']`)
 
               // Upsert it first
-              this.upsertToJsonPaths({ thisKeyPath: thisKeyPath, depth: depth, key: key, value: leaf[key] })
+              this.upsertToJsonPaths(
+                {
+                  thisKeyPath: thisKeyPath,
+                  depth: depth,
+                  key: key,
+                  value: leaf[key]
+                }
+              )
 
               // Loop through its sub-elements, if any
               if (typeof leaf[key] === 'object' && leaf[key]) {
