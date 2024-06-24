@@ -720,7 +720,7 @@
           <div class="column flex q-gutter-sm" style="width: 35rem">
             <div class="text-bold">{{ $t('User Preferences') }}</div>
             <div class="row">
-              <div class="col-3">
+              <div class="col-3 content-center">
                 <label class="">{{ $t('Display') }}</label>
               </div>
               <div class="col">
@@ -753,24 +753,29 @@
                 </q-tooltip>
               </q-toggle> -->
             </div>
-            <div class="q-mr-md">
-              <q-select
-                v-model="selectedLanguage"
-                :options="langOptions"
-                outlined
-                emit-value
-                map-options
-                dense
-                style="min-width: 150px"
-              >
-                <template v-slot:after>
-                  <q-btn color="primary" icon="save" @click="saveLanguageSettings()" :loading="savingAction" >
-                    <q-tooltip content-style="font-size: 1em">
-                      {{ $t('Save settings to local web browser.') }}
-                    </q-tooltip>
-                  </q-btn>
-                </template>
-              </q-select>
+            <div class="q-mr-md row">
+              <div class="col-3 content-center">
+                <label class="">{{ $t('Language') }}</label>
+              </div>
+              <div class="col">
+                <q-select
+                  v-model="selectedLanguage"
+                  :options="langOptions"
+                  outlined
+                  emit-value
+                  map-options
+                  dense
+                  style="min-width: 150px"
+                >
+                  <template v-slot:after>
+                    <q-btn color="primary" icon="save" @click="saveLanguageSettings()" :loading="savingAction" >
+                      <q-tooltip content-style="font-size: 1em">
+                        {{ $t('Save settings to local web browser.') }}
+                      </q-tooltip>
+                    </q-btn>
+                  </template>
+                </q-select>
+              </div>
             </div>
           </div>
 
