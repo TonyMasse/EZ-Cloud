@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "处理并添加到 JSON 映射区域",
   "JSON Mapping": "JSON 映射",
   "Confirm reset": "确认重置",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "这将清除所有已处理的日志以及迄今为止完成的所有映射。你确定吗？"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "这将清除所有已处理的日志以及迄今为止完成的所有映射。你确定吗？",
+  "Process File Content and Add to JSON Mapping Area": "处理文件内容并添加到JSON映射区域"
 }

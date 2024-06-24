@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "معالجة وإضافة إلى منطقة رسم الخرائط JSON",
   "JSON Mapping": "رسم الخرائط JSON",
   "Confirm reset": "تأكيد إعادة التعيين",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "سيؤدي هذا إلى مسح جميع السجلات التي تمت معالجتها بالإضافة إلى جميع التعيينات التي تم إجراؤها حتى الآن. هل أنت متأكد؟"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "سيؤدي هذا إلى مسح جميع السجلات التي تمت معالجتها بالإضافة إلى جميع التعيينات التي تم إجراؤها حتى الآن. هل أنت متأكد؟",
+  "Process File Content and Add to JSON Mapping Area": "معالجة محتوى الملف وإضافته إلى منطقة تخطيط JSON"
 }

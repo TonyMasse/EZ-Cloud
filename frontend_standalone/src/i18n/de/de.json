@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "Verarbeiten und zum JSON-Zuordnungsbereich hinzufügen",
   "JSON Mapping": "JSON-Zuordnung",
   "Confirm reset": "Bestätigen Sie das Zurücksetzen",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "Dadurch werden alle verarbeiteten Protokolle sowie alle bisher durchgeführten Zuordnungen gelöscht. Bist du sicher?"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "Dadurch werden alle verarbeiteten Protokolle sowie alle bisher durchgeführten Zuordnungen gelöscht. Bist du sicher?",
+  "Process File Content and Add to JSON Mapping Area": "Dateiinhalt verarbeiten und zum JSON-Mapping-Bereich hinzufügen."
 }

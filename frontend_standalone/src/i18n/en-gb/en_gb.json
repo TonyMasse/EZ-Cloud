@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "Process and Add to JSON Mapping Area",
   "JSON Mapping": "JSON Mapping",
   "Confirm reset": "Confirm reset",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "This will clear all the processed logs as well as all the mapping done so far. Are you sure?"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "This will clear all the processed logs as well as all the mapping done so far. Are you sure?",
+  "Process File Content and Add to JSON Mapping Area": "Process File Content and Add to JSON Mapping Area"
 }

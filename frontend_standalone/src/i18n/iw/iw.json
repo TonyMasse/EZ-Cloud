@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "עבד והוסף לאזור מיפוי JSON",
   "JSON Mapping": "מיפוי JSON",
   "Confirm reset": "אשר את האיפוס",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "פעולה זו תנקה את כל היומנים המעובדים כמו גם את כל המיפוי שנעשה עד כה. האם אתה בטוח?"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "פעולה זו תנקה את כל היומנים המעובדים כמו גם את כל המיפוי שנעשה עד כה. האם אתה בטוח?",
+  "Process File Content and Add to JSON Mapping Area": "עיבוד תוכן הקובץ והוספה לאזור המיפוי של JSON"
 }

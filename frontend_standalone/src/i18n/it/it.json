@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "Elabora e aggiungi all'area di mappatura JSON",
   "JSON Mapping": "Mappatura JSON",
   "Confirm reset": "Conferma il ripristino",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "Ciò cancellerà tutti i registri elaborati e tutta la mappatura eseguita finora. Sei sicuro?"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "Ciò cancellerà tutti i registri elaborati e tutta la mappatura eseguita finora. Sei sicuro?",
+  "Process File Content and Add to JSON Mapping Area": "Elabora il contenuto del file e aggiungi all'area di mappatura JSON"
 }

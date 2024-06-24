@@ -710,5 +710,6 @@
   "Process and Add to JSON Mapping Area": "処理して JSON マッピング領域に追加",
   "JSON Mapping": "JSONマッピング",
   "Confirm reset": "リセットの確認",
-  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "これにより、処理されたすべてのログと、これまでに行われたすべてのマッピングがクリアされます。本気ですか？"
+  "This will clear all the processed logs as well as all the mapping done so far. Are you sure?": "これにより、処理されたすべてのログと、これまでに行われたすべてのマッピングがクリアされます。本気ですか？",
+  "Process File Content and Add to JSON Mapping Area": "ファイルの内容を処理してJSONマッピング領域に追加"
 }
