@@ -1489,7 +1489,10 @@ export default {
         if (!(thisPath.modifiers && Array.isArray(thisPath.modifiers))) {
           thisPath.modifiers = []
         }
-        thisPath.modifiers.push('Rule Filter selector')
+        // Add it to the modifiers array (if not already in)
+        if (thisPath.modifiers.indexOf('Rule Filter selector') < 0) {
+          thisPath.modifiers.push('Rule Filter selector')
+        }
       }
 
       // Update thisPath
