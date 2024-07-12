@@ -497,6 +497,7 @@
                 use-input
                 input-debounce="0"
                 @filter="filterModifiersOptions"
+                @add="updateModifiersAdd($event, item)"
               >
                 <template v-slot:option="scope">
                   <q-item
@@ -1135,8 +1136,133 @@ export default {
           this.modifiersOptions = this.modifiers.filter(v => (v.label + v.value + v.description).toLowerCase().indexOf(needle) > -1)
         })
       }
-    }, // filterMdiTagsOptions
+    }, // filterModifiersOptions
 
+    updateModifiersAdd (details, item) {
+      if (
+        details &&
+        details.value === 'Parse JSON'
+      ) {
+        this.$q.dialog({
+          component: ConfirmDialog,
+          parent: this,
+          title: this.$t('Confirm parsing'),
+          message: this.$t('Do you want to try to parse the values for this field, so to be able to map them individually?'),
+          persistent: true,
+          buttons: [
+            {
+              label: this.$t('No'),
+              meaning: 'Cancel'
+            },
+            {
+              label: this.$t('Yes'),
+              meaning: 'OK',
+              default: true
+            }
+          ]
+        }).onOk(async () => {
+          // Reparse it
+          this.doReparseItem(item)
+        })
+      }
+    }, // updateModifiersAdd
+
+    doReparseItem (item) {
+      let thingsWentWell = false
+      if (
+        item &&
+        item.name &&
+        item.values &&
+        Array.isArray(item.values) &&
+        item.values.length > 0
+      ) {
+        const properJsonValues = item.values.filter(v => v.type === 'string' && this.isProperJson(v.value))
+        if (properJsonValues && properJsonValues.length > 0) {
+          // We have a proper JSON to parse
+          // Reparse it
+          let newJsonToParseTop = ''
+          let newJsonToParseBottom = ''
+
+          // Break down the full path into bits
+          const pathMatches = String(item.name).match(/(\.?\[.*?\])/g)
+
+          // Reconstruct the path
+          pathMatches.forEach((match, index) => {
+            newJsonToParseTop = newJsonToParseTop + ''
+            newJsonToParseBottom = newJsonToParseBottom + ''
+
+            if (match.startsWith('.')) {
+              const fieldName = match.substring(3, match.length - 2)
+              newJsonToParseTop = newJsonToParseTop + `{"${fieldName}":`
+              newJsonToParseBottom = '}' + newJsonToParseBottom
+            } else {
+              // Array!
+              const arrayPosition = Number(match.substring(1, match.length - 1) || '0')
+              newJsonToParseTop = newJsonToParseTop + '['
+              for (let i = 0; i < arrayPosition; i++) {
+                newJsonToParseTop = newJsonToParseTop + '{},'
+              }
+              newJsonToParseBottom = ']' + newJsonToParseBottom
+            }
+          })
+          // console.log('updateModifiersAdd - PARSE T', newJsonToParseTop)
+          // console.log('updateModifiersAdd - PARSE V', item.values[0].value)
+          // console.log('updateModifiersAdd - PARSE B', newJsonToParseBottom)
+
+          // Build the full JSON sample set
+          item.values.forEach((value, index) => {
+            const queueInDataEntrySingleLog = `${newJsonToParseTop}${value.value}${newJsonToParseBottom}`
+            // console.log('updateModifiersAdd - PARSE >', `(${index}) ${queueInDataEntrySingleLog}`)
+            this.queueInAdd({ values: queueInDataEntrySingleLog, manualEntry: true })
+          })
+
+          // {
+          //   "name":".['someArray'][1].['source'].['port']",
+          //   "leaf":"port",
+          //   "depth":4,
+          //   "seenInLogCount":2,
+          //   "values":[
+          //     {
+          //       "value":44444,
+          //       "type":"number",
+          //       "count":2
+          //     }
+          //   ]
+          // }
+
+          // Matches:
+          // [
+          //   ".['someArray']",
+          //   "[1]",
+          //   ".['source']",
+          //   ".['message']"
+          // ]
+
+          // Target result:
+          // {
+          //   "someArray":[
+          //     {
+          //     },
+          //     {
+          //       "source":{
+          //         "port":8888
+          //       }
+          //     }
+          //   ]
+          // }
+          thingsWentWell = true
+        }
+      }
+
+      if (!thingsWentWell) {
+        this.$q.notify({
+          icon: 'comments_disabled',
+          message: this.$t('No proper JSON found to parse for field:'),
+          caption: (item && item.name ? item.name : 'Unknown field'),
+          color: 'negative'
+        })
+      }
+    },
     clearProcessedLogs () {
       this.$q.dialog({
         component: ConfirmDialog,
